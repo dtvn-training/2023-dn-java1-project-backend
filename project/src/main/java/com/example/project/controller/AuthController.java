@@ -34,9 +34,18 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwt = jwtService.generateTokenLogin(authentication);
+        String jwtRefresh = jwtService.generateRefreshToken(authentication);
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User currentUser = userService.findByEmail(user.getEmail()).get();
-        return ResponseEntity.ok(new JwtResponse(jwt, currentUser.getId(), userDetails.getUsername(), userDetails.getAuthorities()));
+        var jwtResponse = JwtResponse.builder()
+                .token(jwt)
+                .id(currentUser.getId())
+                .type("Bearer")
+                .email(userDetails.getUsername())
+                .roles(userDetails.getAuthorities())
+                .refreshToken(jwtRefresh)
+                .build();
+        return ResponseEntity.ok(jwtResponse);
     }
 
     @GetMapping("/admin/infor")
