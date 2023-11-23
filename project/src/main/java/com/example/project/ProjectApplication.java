@@ -47,7 +47,7 @@ public class ProjectApplication {
 //			roleAdmin.setId(2L);
 //			roleAdmin.setName("ROLE_USER");
 //			roles.add(roleAdmin);
-//			admin.setEmail("tanphat@gmail.com");
+//			admin.setEmail("hongquan@gmail.com");
 //			admin.setPassword("123456");
 //			admin.setRoles(roles);
 //			userService.save(admin);

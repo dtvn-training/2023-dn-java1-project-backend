@@ -2,6 +2,8 @@ package com.example.project.controller;
 
 import com.example.project.model.JwtResponse;
 import com.example.project.model.User;
+import com.example.project.payload.request.TokenRefreshRequest;
+import com.example.project.payload.response.TokenRefreshResponse;
 import com.example.project.service.JwtService;
 import com.example.project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +13,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
 
 @CrossOrigin("*")
 @RestController
@@ -35,6 +40,9 @@ public class AuthController {
 
         String jwt = jwtService.generateTokenLogin(authentication);
         String jwtRefresh = jwtService.generateRefreshToken(authentication);
+
+        Date expirationDate = jwtService.getExpirationDateFromToken(jwt);
+
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User currentUser = userService.findByEmail(user.getEmail()).get();
         var jwtResponse = JwtResponse.builder()
@@ -44,8 +52,29 @@ public class AuthController {
                 .email(userDetails.getUsername())
                 .roles(userDetails.getAuthorities())
                 .refreshToken(jwtRefresh)
+                .expirationTime(expirationDate.getTime())
                 .build();
         return ResponseEntity.ok(jwtResponse);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody TokenRefreshRequest request) {
+        String refreshToken = request.getRefreshToken();
+        System.out.println(refreshToken);
+        if (StringUtils.hasText(refreshToken) && jwtService.validateJwtToken(refreshToken)) {
+            Authentication authentication = jwtService.getAuthenticationFromToken(refreshToken);
+            String newAccessToken = jwtService.generateTokenLogin(authentication);
+
+            var rs = TokenRefreshResponse.builder()
+                    .accessToken(newAccessToken)
+                    .refreshToken(refreshToken)
+                    .tokenType("Bearer")
+                    .build();
+
+            return ResponseEntity.ok(rs);
+        } else {
+            return ResponseEntity.badRequest().body("Invalid refresh token");
+        }
     }
 
     @GetMapping("/admin/infor")
