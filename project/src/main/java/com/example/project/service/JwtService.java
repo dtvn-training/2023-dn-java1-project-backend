@@ -24,7 +24,7 @@ public class JwtService {
     private static final long EXPIRE_TIME = 60000L;
     private static final Logger logger = LoggerFactory.getLogger(JwtService.class.getName());
 
-    public String generateTokenLogin(Authentication authentication) {
+    public String generateAccessToken(Authentication authentication) {
         UserPrinciple userPrincipal = (UserPrinciple) authentication.getPrincipal();
         return Jwts.builder()
                 .setSubject((userPrincipal.getUsername()))
@@ -34,12 +34,11 @@ public class JwtService {
                 .compact();
     }
 
-    public String generateRefreshToken(Authentication authentication) {
-        UserPrinciple userPrincipal = (UserPrinciple) authentication.getPrincipal();
+    public String generateTokenFromEmail(String email) {
         return Jwts.builder()
-                .setSubject((userPrincipal.getUsername()))
+                .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + EXPIRE_TIME * 3))
+                .setExpiration(new Date((new Date()).getTime() + EXPIRE_TIME))
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();
     }
@@ -76,11 +75,5 @@ public class JwtService {
                 .parseClaimsJws(token)
                 .getBody();
         return claims.getExpiration();
-    }
-
-    public Authentication getAuthenticationFromToken(String refreshtoken) {
-        Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(refreshtoken).getBody();
-        UserDetails userDetails = userService.loadUserByUsername(claims.getSubject());
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 }

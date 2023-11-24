@@ -44,10 +44,10 @@ public class ProjectApplication {
 			User admin = new User();
 			Set<Role> roles = new HashSet<>();
 			Role roleAdmin = new Role();
-			roleAdmin.setId(2L);
-			roleAdmin.setName("ROLE_USER");
+			roleAdmin.setId(1L);
+			roleAdmin.setName("ROLE_ADMIN");
 			roles.add(roleAdmin);
-			admin.setEmail("hongquan@gmail.com");
+			admin.setEmail("tanphat@gmail.com");
 			admin.setPassword("123456");
 			admin.setRoles(roles);
 			userService.save(admin);
