@@ -6,13 +6,19 @@ import io.jsonwebtoken.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
+import java.util.Properties;
 
 @Component
 @Service
@@ -20,8 +26,16 @@ public class JwtService {
 
     @Autowired
     UserService userService;
-    private static final String SECRET_KEY = "123456789";
-    private static final long EXPIRE_TIME = 60000L;
+
+    @Autowired
+    private MessageSource messageSource;
+
+    @Value("${app.jwt.secret_key}")
+    private String SECRET_KEY;
+
+    @Value("${app.jwt.tokenExpirationMs}")
+    private long EXPIRE_TIME_TOKEN;
+
     private static final Logger logger = LoggerFactory.getLogger(JwtService.class.getName());
 
     public String generateAccessToken(Authentication authentication) {
@@ -29,7 +43,7 @@ public class JwtService {
         return Jwts.builder()
                 .setSubject((userPrincipal.getUsername()))
                 .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + EXPIRE_TIME))
+                .setExpiration(new Date((new Date()).getTime() + EXPIRE_TIME_TOKEN))
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();
     }
@@ -38,7 +52,7 @@ public class JwtService {
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + EXPIRE_TIME))
+                .setExpiration(new Date((new Date()).getTime() + EXPIRE_TIME_TOKEN))
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();
     }
@@ -48,15 +62,20 @@ public class JwtService {
             Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(authToken);
             return true;
         } catch (SignatureException e) {
-            logger.error("Invalid JWT signature -> Message: {} ", e);
+            logger.error("{} -> Message: {} ",
+                    messageSource.getMessage("invalid.jwt.signature", null, LocaleContextHolder.getLocale()), e);
         } catch (MalformedJwtException e) {
-            logger.error("Invalid JWT token -> Message: {}", e);
+            logger.error("{} -> Message: {} ",
+                    messageSource.getMessage("invalid.jwt.token", null, LocaleContextHolder.getLocale()), e);
         } catch (ExpiredJwtException e) {
-            logger.error("Expired JWT token -> Message: {}", e);
+            logger.error("{} -> Message: {} ",
+                    messageSource.getMessage("expired.jwt.token", null, LocaleContextHolder.getLocale()), e);
         } catch (UnsupportedJwtException e) {
-            logger.error("Unsupported JWT token -> Message: {}", e);
+            logger.error("{} -> Message: {} ",
+                    messageSource.getMessage("unsupported.jwt.token", null, LocaleContextHolder.getLocale()), e);
         } catch (IllegalArgumentException e) {
-            logger.error("JWT claims string is empty -> Message: {}", e);
+            logger.error("{} -> Message: {} ",
+                    messageSource.getMessage("empty.jwt.claims", null, LocaleContextHolder.getLocale()), e);
         }
         return false;
     }

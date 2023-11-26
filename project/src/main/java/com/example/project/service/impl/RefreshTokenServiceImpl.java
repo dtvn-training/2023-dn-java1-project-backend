@@ -45,7 +45,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         String token = Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + refreshTokenDurationMs * 3))
+                .setExpiration(new Date((new Date()).getTime() + refreshTokenDurationMs))
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();
 

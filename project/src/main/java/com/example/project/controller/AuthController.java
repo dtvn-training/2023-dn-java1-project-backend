@@ -11,6 +11,8 @@ import com.example.project.service.JwtService;
 import com.example.project.service.RefreshTokenService;
 import com.example.project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,6 +39,9 @@ public class AuthController {
 
     @Autowired
     private RefreshTokenService refreshTokenService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user) {
@@ -76,15 +81,12 @@ public class AuthController {
                 .map(RefreshToken::getUser)
                 .map(user -> {
                     String token = jwtService.generateTokenFromEmail(user.getEmail());
-//                    refreshTokenService.deleteByUserId(user.getId());
-
-                    //refreshToken
-//                    RefreshToken refreshToken = refreshTokenService.generateRefreshToken(user.getId());
-
                     return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
                 })
                 .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
-                        "Refresh token is not in database!"));
+                        messageSource.getMessage("message.refresh.token.not.in.database",
+                                null,
+                                LocaleContextHolder.getLocale())));
     }
 
     @PostMapping("/logout")
@@ -92,7 +94,9 @@ public class AuthController {
         User userDetails = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = userDetails.getId();
         refreshTokenService.deleteByUserId(userId);
-        return ResponseEntity.ok(new MessageResponse("Log out successful!"));
+        return ResponseEntity.ok(new MessageResponse(messageSource.getMessage("message.logout.success",
+                null,
+                LocaleContextHolder.getLocale())));
     }
 
     @GetMapping("/admin/infor")
@@ -100,9 +104,14 @@ public class AuthController {
         return "admin page";
     }
 
-    @GetMapping("/user/infor")
-    public String user() {
-        return "user page";
+    @GetMapping("/dac/infor")
+    public String dac() {
+        return "dac page";
+    }
+
+    @GetMapping("/advertiser/infor")
+    public String advertiser() {
+        return "advertiser page";
     }
 
 }

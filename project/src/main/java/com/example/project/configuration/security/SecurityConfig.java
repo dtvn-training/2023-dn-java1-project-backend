@@ -3,10 +3,14 @@ package com.example.project.configuration.security;
 import com.example.project.configuration.custom.CustomAccessDeniedHandler;
 import com.example.project.configuration.custom.RestAuthenticationEntryPoint;
 import com.example.project.configuration.filter.JwtAuthenticationFilter;
+import com.example.project.model.EnumRole;
 import com.example.project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -16,6 +20,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -26,6 +31,7 @@ import java.util.Arrays;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
     @Autowired
     private UserService userService;
 
@@ -45,10 +51,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new RestAuthenticationEntryPoint();
     }
 
+
     @Bean
     public CustomAccessDeniedHandler customAccessDeniedHandler() {
         return new CustomAccessDeniedHandler();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -60,6 +68,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
     }
 
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().ignoringAntMatchers("/**");
@@ -67,8 +76,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers("/api/login").permitAll()
                 .antMatchers("/api/refreshtoken").permitAll()
-                .antMatchers("/api/admin/infor").hasAuthority("ROLE_ADMIN")
-                .antMatchers("/api/user/infor").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
+                .antMatchers("/api/admin/infor").hasAuthority(String.valueOf(EnumRole.ROLE_ADMIN))
+                .antMatchers("/api/dac/infor").hasAuthority(String.valueOf(EnumRole.ROLE_DAC))
+                .antMatchers("/api/advertiser/infor").hasAuthority(String.valueOf(EnumRole.ROLE_ADVERTISER))
                 .anyRequest().authenticated()
                 .and().csrf().disable();
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)

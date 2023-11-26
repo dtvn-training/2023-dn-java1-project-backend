@@ -5,6 +5,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -19,33 +20,31 @@ public class UserPrinciple implements UserDetails {
 
     private String password;
 
-    private Collection<? extends GrantedAuthority> roles;
+    private GrantedAuthority role;
 
     public UserPrinciple(Long id,
                          String email, String password,
-                         Collection<? extends GrantedAuthority> roles) {
+                         GrantedAuthority role) {
         this.id = id;
         this.email = email;
         this.password = password;
-        this.roles = roles;
+        this.role = role;
     }
 
     public static UserPrinciple build(User user) {
-        List<GrantedAuthority> authorities = user.getRoles().stream().map(role ->
-                new SimpleGrantedAuthority(role.getName())
-        ).collect(Collectors.toList());
+        GrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().getName());
 
         return new UserPrinciple(
                 user.getId(),
                 user.getEmail(),
                 user.getPassword(),
-                authorities
+                authority
         );
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles;
+    public  Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(role);
     }
 
     @Override
