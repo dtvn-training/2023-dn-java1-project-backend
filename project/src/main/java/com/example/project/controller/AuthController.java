@@ -1,10 +1,10 @@
 package com.example.project.controller;
 
 import com.example.project.exception.TokenRefreshException;
-import com.example.project.responses.JwtResponse;
 import com.example.project.model.RefreshToken;
 import com.example.project.model.User;
 import com.example.project.payload.request.TokenRefreshRequest;
+import com.example.project.payload.response.JwtResponse;
 import com.example.project.payload.response.MessageResponse;
 import com.example.project.payload.response.TokenRefreshResponse;
 import com.example.project.service.JwtService;

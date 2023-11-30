@@ -58,9 +58,6 @@ public class User {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-    @ManyToOne
-    @JoinColumn(name = "created_by")
-    private User createdBy;
 
 
     @PrePersist

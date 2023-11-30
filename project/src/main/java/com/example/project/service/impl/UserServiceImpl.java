@@ -5,7 +5,7 @@ import com.example.project.dto.UserDTO;
 import com.example.project.exception.DataNotFoundException;
 import com.example.project.model.Role;
 import com.example.project.model.User;
-import com.example.project.payload.response.ListUserResponse;
+import com.example.project.payload.response.UserResponse;
 import com.example.project.repository.RoleRepository;
 import com.example.project.repository.UserRepository;
 import com.example.project.model.UserPrinciple;
@@ -13,8 +13,6 @@ import com.example.project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -77,7 +75,6 @@ public class UserServiceImpl implements UserService {
         Role role = roleRepository.findById(userCreateDTO.getRoleId())
                 .orElseThrow(() -> new DataNotFoundException("Role not found "));
         System.out.println(role);
-        //User createBy = getAuthenticatedAccount();
         User newUser = User.builder()
                 .email(userCreateDTO.getEmail())
                 .firstName(userCreateDTO.getFirstName())
@@ -98,22 +95,6 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    //get who has just created an account
-    private User  getAuthenticatedAccount() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new IllegalStateException("Cannot retrieve authenticated user.");
-        }
-
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails) {
-            return (User) principal;
-        }
-
-        throw new IllegalStateException("Authenticated user is not an instance of UserDetails.");
-    }
-
     @Override
     public User getUserByID(Long userID) throws Exception {
         return userRepository.findById(userID)
@@ -121,9 +102,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<ListUserResponse> getAllUser(PageRequest pageRequest) {
-        // get number of product for page and limit
-        return null;
+    public Page<UserResponse> getAllUsers(PageRequest pageRequest) {
+        // get number of user  for page and limit
+        return userRepository.findAll(pageRequest).map(UserResponse:: mapUser);
     }
 
     @Override

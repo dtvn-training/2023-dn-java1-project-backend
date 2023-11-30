@@ -5,6 +5,7 @@ import com.example.project.dto.UserDTO;
 import com.example.project.model.User;
 import com.example.project.payload.response.ListUserResponse;
 import com.example.project.payload.response.UserCreateResponse;
+import com.example.project.payload.response.UserResponse;
 import com.example.project.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,39 +23,25 @@ import java.util.List;
 @RequestMapping("api/users")
 public class UserController {
     private final UserService userService;
-    @GetMapping("") // http://localhost:8080/api/v1/products?page=1&limit=10
-    public ResponseEntity<ListUserResponse> getProducts(@RequestParam("page") int page, @RequestParam("limit") int limit) {
-        // page start 0 -> limit
-        // get và sắp sếp số lượng sản phẩm theo trang và số lượng.
-        PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createAt").descending());
-        // get product
-        Page<ListUserResponse> userPage = userService.getAllUser(pageRequest);
-        // get tổng số trang
+
+    // Get list user
+    @GetMapping("") // http://localhost:3000/api/users?page=1&limit=5
+    public ResponseEntity<ListUserResponse> getUsers(@RequestParam("page") int page, @RequestParam("limit") int limit) {
+        PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createddAt").descending());
+        Page<UserResponse> userPage = userService.getAllUsers(pageRequest);
         int totalPage = userPage.getTotalPages();
-        // get số sản phẩm đã được tính theo trang
-        List<ListUserResponse> products = userPage.getContent();
-        // map
-        ListUserResponse userResponse = ListUserResponse.builder()
-                .userResponses(products)
+        List<UserResponse> users = userPage.getContent();
+        ListUserResponse listUserResponse = ListUserResponse.builder()
+                .listUser(users)
                 .totalPage(totalPage)
                 .build();
-        return ResponseEntity.ok(userResponse);
+        return ResponseEntity.ok(listUserResponse);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getProduct(@PathVariable Long id) {
-        try {
-            User user = userService.getUserByID(id);
-            return ResponseEntity.ok(ListUserResponse.mapUser(user));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-
-    }
+    // create user
     @PostMapping("")
-    public ResponseEntity<?> createProduct(@RequestBody @Valid UserCreateDTO request, BindingResult result) {
+    public ResponseEntity<?> createUser(@RequestBody @Valid UserCreateDTO request, BindingResult result) {
         try {
-            // kiểm tra dữ liệu
             if (result.hasErrors()) {
                 List<String> errMessage = result.getAllErrors()
                         .stream()
@@ -62,7 +49,6 @@ public class UserController {
                         .toList();
                 return ResponseEntity.badRequest().body(errMessage);
             }
-            request.setRoleId(1L);
             UserDTO newUser = userService.createUser(request);
             var userModel = UserCreateResponse.builder()
                     .firstName(newUser.getFirstName())
@@ -78,8 +64,20 @@ public class UserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    // Get single user
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
+        try {
+            User user = userService.getUserByID(id);
+            return ResponseEntity.ok(UserResponse.mapUser(user));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
+    }
+    //Update user
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateProduct(@Valid @PathVariable Long id, @Valid @PathVariable UserDTO request) {
+    public ResponseEntity<?> updateUser(@Valid @PathVariable Long id, @Valid @PathVariable UserDTO request) {
         try {
             return ResponseEntity.ok("update user successfully = " + request);
         } catch (Exception e) {
@@ -87,8 +85,9 @@ public class UserController {
         }
 
     }
+    // Delete User
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         try {
             userService.deleteUser(id);
             return ResponseEntity.ok("Delete product successfully id = " + id);
