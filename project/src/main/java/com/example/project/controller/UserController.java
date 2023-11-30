@@ -1,6 +1,6 @@
 package com.example.project.controller;
 
-import com.example.project.constants.AppContants;
+import com.example.project.constants.ErrorMessage;
 import com.example.project.dto.UserCreateDTO;
 import com.example.project.dto.UserDTO;
 import com.example.project.exception.ResponseMessage;
@@ -63,7 +63,6 @@ public class UserController {
                     .build();
             return ResponseEntity.ok(userModel);
         } catch (Exception e) {
-            System.out.println(e.toString());
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -84,21 +83,27 @@ public class UserController {
         UserDTO accountUpdated = userService.updateUser(id, request);
         if (accountUpdated != null) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(AppContants.ACCOUNT_UPDATE_SUCCESS, AppContants.ACCOUNT_SUCCESS_CODE,accountUpdated));
+                    .body(new ResponseMessage(ErrorMessage.ACCOUNT_UPDATE_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE,accountUpdated));
         } else {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(AppContants.ACCOUNT_NOT_FOUND, AppContants.RESOURCE_NOT_FOUND_CODE));
+                    .body(new ResponseMessage(ErrorMessage.ACCOUNT_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
         }
 
     }
     // Delete User
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<ResponseMessage<UserDTO>> deleteUser(@PathVariable Long id) {
         try {
             userService.deleteUser(id);
-            return ResponseEntity.ok("Delete product successfully id = " + id);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage<>(ErrorMessage.ACCOUNT_DELETE_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE));
+        }  catch (NumberFormatException e){
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage<>(ErrorMessage.ACCOUNT_ID_INVALID, ErrorMessage.ACCOUNT_BAD_REQUEST));
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage<>(ErrorMessage.ACCOUNT_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
         }
     }
 }

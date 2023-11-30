@@ -20,5 +20,5 @@ public interface UserService extends GeneralService<User>, UserDetailsService {
 
     UserDTO updateUser(Long userID, UserDTO userDTO);
 
-    void deleteUser(Long id) throws DataNotFoundException;
+    void deleteUser(Long id);
 }

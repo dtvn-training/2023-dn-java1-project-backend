@@ -1,6 +1,6 @@
 package com.example.project.service.impl;
 
-import com.example.project.constants.AppContants;
+import com.example.project.constants.ErrorMessage;
 import com.example.project.dto.UserCreateDTO;
 import com.example.project.dto.UserDTO;
 import com.example.project.exception.DataNotFoundException;
@@ -21,6 +21,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Optional;
 
 import static com.example.project.constants.ErrorConstants.ERROR_ROLE_NOT_FOUND;
@@ -124,21 +125,21 @@ public class UserServiceImpl implements UserService {
             if(roleUpdate.isPresent()){
                 oldUser.setRole(roleUpdate.get());
             }else{
-                throw new ErrorException(ERROR_ROLE_NOT_FOUND, AppContants.RESOURCE_NOT_FOUND_CODE);
+                throw new ErrorException(ERROR_ROLE_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE);
             }
             return mapper.map(userRepository.save(oldUser),UserDTO.class);
         }else {
-            throw new ErrorException(AppContants.ACCOUNT_NOT_FOUND,  AppContants.RESOURCE_NOT_FOUND_CODE);
+            throw new ErrorException(ErrorMessage.ACCOUNT_NOT_FOUND,  ErrorMessage.RESOURCE_NOT_FOUND_CODE);
         }
 
     }
 
     @Override
-    public void deleteUser(Long id) throws DataNotFoundException {
+    @Transactional
+    public void deleteUser(Long id) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(
-                        () -> new DataNotFoundException
-                                ("Cannot delete order with id: " + id));
+                        () -> new RuntimeException(ErrorMessage.ACCOUNT_NOT_FOUND));
         existingUser.setDeleteFlag(true);
         userRepository.save(existingUser);
     }

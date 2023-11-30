@@ -1,8 +1,6 @@
 package com.example.project.constants;
 
-public class AppContants {
-    public static final String DEFAULT_PAGE_NUMBER = "0";
-    public static final String DEFAULT_PAGE_SIZE = "3";
+public class ErrorMessage {
     public static final Integer RESOURCE_NOT_FOUND_CODE = 404;
     public static final String ACCOUNT_NOT_FOUND = "Account not found";
     public static final String ACCOUNT_DELETE_SUCCESS = "Account delete success";
@@ -13,5 +11,7 @@ public class AppContants {
     public static final String  PAGESIZE_INVALID= "Page size invalid";
     public static final String ACCOUNT_UPDATE_SUCCESS = "Account update success";
     public static final String ACCOUNT_GET_ALL_SUCCESS = "Get all account success";
+
+    public static final String GET_SINGLE_ACCOUNT_SUCCESS = "Get single account success";
 
 }
