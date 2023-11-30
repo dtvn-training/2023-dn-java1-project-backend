@@ -1,8 +1,10 @@
 package com.example.project.service.impl;
 
+import com.example.project.constants.AppContants;
 import com.example.project.dto.UserCreateDTO;
 import com.example.project.dto.UserDTO;
 import com.example.project.exception.DataNotFoundException;
+import com.example.project.exception.ErrorException;
 import com.example.project.model.Role;
 import com.example.project.model.User;
 import com.example.project.payload.response.UserResponse;
@@ -11,7 +13,7 @@ import com.example.project.repository.UserRepository;
 import com.example.project.model.UserPrinciple;
 import com.example.project.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +23,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import static com.example.project.constants.ErrorConstants.ERROR_ROLE_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -29,8 +33,8 @@ public class UserServiceImpl implements UserService {
 
     private final RoleRepository roleRepository;
 
-    private PasswordEncoder passwordEncoder;
-
+    private final PasswordEncoder passwordEncoder;
+    private final ModelMapper mapper = new ModelMapper();
     @Override
     public Iterable<User> findAll() {
         return userRepository.findAll();
@@ -102,23 +106,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<UserResponse> getAllUsers(PageRequest pageRequest) {
-        // get number of user  for page and limit
-
         return userRepository.findAll(pageRequest).map(UserResponse:: mapUser);
     }
 
     @Override
-    public User updateUser(Long userID, UserDTO userDTO) throws Exception {
-        User exitstingUser = getUserByID(userID);
-        Role exitstingRole = roleRepository.findById(userDTO.getRoleId())
-                .orElseThrow(() -> new DataNotFoundException("cannot find role not found id: " + userDTO.getRoleId()));
-        exitstingUser.setEmail(userDTO.getEmail());
-        exitstingUser.setFirstName(userDTO.getFirstName());
-        exitstingUser.setLastName(userDTO.getLastName());
-        exitstingUser.setAddress(userDTO.getAddress());
-        exitstingUser.setPhone(userDTO.getPhone());
-        exitstingUser.setRole(exitstingRole);
-        return userRepository.save(exitstingUser);
+    public UserDTO updateUser(Long userID, UserDTO userDTO) {
+        Optional<User> optionalOldUser = userRepository.findById(userID);
+        if(optionalOldUser.isPresent()){
+            User oldUser  =  optionalOldUser.get();
+            oldUser.setEmail(userDTO.getEmail());
+            oldUser.setFirstName(userDTO.getFirstName());
+            oldUser.setLastName(userDTO.getLastName());
+            oldUser.setAddress(userDTO.getAddress());
+            oldUser.setPhone(userDTO.getPhone());
+            //find role id by role name
+            Optional<Role> roleUpdate = roleRepository.findById(userDTO.getRoleId());
+            if(roleUpdate.isPresent()){
+                oldUser.setRole(roleUpdate.get());
+            }else{
+                throw new ErrorException(ERROR_ROLE_NOT_FOUND, AppContants.RESOURCE_NOT_FOUND_CODE);
+            }
+            return mapper.map(userRepository.save(oldUser),UserDTO.class);
+        }else {
+            throw new ErrorException(AppContants.ACCOUNT_NOT_FOUND,  AppContants.RESOURCE_NOT_FOUND_CODE);
+        }
 
     }
 

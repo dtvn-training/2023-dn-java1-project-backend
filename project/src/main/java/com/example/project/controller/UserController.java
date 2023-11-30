@@ -1,7 +1,9 @@
 package com.example.project.controller;
 
+import com.example.project.constants.AppContants;
 import com.example.project.dto.UserCreateDTO;
 import com.example.project.dto.UserDTO;
+import com.example.project.exception.ResponseMessage;
 import com.example.project.model.User;
 import com.example.project.payload.response.ListUserResponse;
 import com.example.project.payload.response.UserCreateResponse;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -77,11 +80,14 @@ public class UserController {
     }
     //Update user
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@Valid @PathVariable Long id, @Valid @PathVariable UserDTO request) {
-        try {
-            return ResponseEntity.ok("update user successfully = " + request);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+    public ResponseEntity<?> updateUser(@Valid @PathVariable Long id, @Valid @RequestBody UserDTO request) {
+        UserDTO accountUpdated = userService.updateUser(id, request);
+        if (accountUpdated != null) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage(AppContants.ACCOUNT_UPDATE_SUCCESS, AppContants.ACCOUNT_SUCCESS_CODE,accountUpdated));
+        } else {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage(AppContants.ACCOUNT_NOT_FOUND, AppContants.RESOURCE_NOT_FOUND_CODE));
         }
 
     }

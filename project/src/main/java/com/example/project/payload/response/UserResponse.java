@@ -10,6 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponse extends BaseResponse {
+    private  Long id;
     private  String email;
     private  String firstName;
     private  String lastName;
@@ -19,6 +20,7 @@ public class UserResponse extends BaseResponse {
 
     public static UserResponse mapUser(User user) {
         UserResponse userResponse = UserResponse.builder()
+                .id(user.getId())
                         .email(user.getEmail())
                         .firstName(user.getFirstName())
                         .lastName(user.getLastName())

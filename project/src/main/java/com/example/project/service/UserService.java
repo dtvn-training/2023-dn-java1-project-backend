@@ -18,7 +18,7 @@ public interface UserService extends GeneralService<User>, UserDetailsService {
     User getUserByID(Long userID) throws Exception;
     Page<UserResponse> getAllUsers(PageRequest pageRequest);
 
-    User updateUser(Long userID, UserDTO userDTO) throws Exception;
+    UserDTO updateUser(Long userID, UserDTO userDTO);
 
     void deleteUser(Long id) throws DataNotFoundException;
 }
