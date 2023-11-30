@@ -1,7 +1,7 @@
 package com.example.project.controller;
 
 import com.example.project.exception.TokenRefreshException;
-import com.example.project.model.JwtResponse;
+import com.example.project.responses.JwtResponse;
 import com.example.project.model.RefreshToken;
 import com.example.project.model.User;
 import com.example.project.payload.request.TokenRefreshRequest;
@@ -19,7 +19,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;

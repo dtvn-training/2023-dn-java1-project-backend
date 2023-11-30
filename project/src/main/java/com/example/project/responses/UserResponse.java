@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import javax.validation.constraints.NotBlank;
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -34,4 +36,7 @@ public class UserResponse extends BaseResponse {
         userResponse.setUpdatedAt(user.getUpdatedAt());
         return userResponse;
     }
+
+    private List<UserResponse> userResponses;
+    private int totalPage;
 }

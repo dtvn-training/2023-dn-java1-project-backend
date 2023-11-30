@@ -19,25 +19,25 @@ import java.util.Set;
 @Entity
 @Builder
 @Table(name = "users")
-public class User implements UserDetails {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 100, name = "email")
     private String email;
 
-    @Column(nullable = true)
+    @Column(nullable = false, length = 50, name = "first_name")
     private String firstName;
 
-    @Column(nullable = true)
+    @Column(nullable = false , length = 50, name = "last_name")
     private String lastName;
 
 
-    @Column(nullable = true)
+    @Column(nullable = true, name = "address", length = 200)
     private String address;
 
-    @Column(nullable = true)
+    @Column(nullable = true, name = "phone", length = 20)
     private String phone;
 
     @Column(nullable = false)
@@ -53,13 +53,14 @@ public class User implements UserDetails {
     @Column(name = "delete_flag", nullable = false)
     private boolean deleteFlag;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+    @ManyToOne
+    @JoinColumn(name = "created_by")
+    private User createdBy;
 
 
     @PrePersist
@@ -72,33 +73,4 @@ public class User implements UserDetails {
         updatedAt = LocalDateTime.now();
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
-    }
-
-    @Override
-    public String getUsername() {
-        return null;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
 }

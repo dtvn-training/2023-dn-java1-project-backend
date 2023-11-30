@@ -33,5 +33,22 @@ public class ProjectApplication {
     public void init() {
         List<User> users = (List<User>) userService.findAll();
         List<Role> roleList = (List<Role>) roleService.findAll();
+
+//		if (users.isEmpty()) {
+//			User admin = new User();
+//			Set<Role> roles = new HashSet<>();
+//			Role roleAdmin = new Role();
+//			roleAdmin.setId(2L);
+//			roleAdmin.setName("ROLE_USER");
+//			roles.add(roleAdmin);
+//			admin.setEmail("nhuquynh@gmail.com");
+//            admin.setFirstName("Nguyen Nhu");
+//            admin.setLastName("Quynh");
+//            admin.setId(1L);
+//            admin.setAddress("Da Nang");
+//			admin.setPassword("123456@quynh");
+//            admin.setPhone("0778546144");
+//			userService.save(admin);
+//		}
     }
 }

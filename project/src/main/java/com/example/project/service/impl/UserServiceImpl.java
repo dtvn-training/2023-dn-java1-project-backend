@@ -1,5 +1,6 @@
 package com.example.project.service.impl;
 
+import com.example.project.dto.UserCreateDTO;
 import com.example.project.dto.UserDTO;
 import com.example.project.exception.DataNotFoundException;
 import com.example.project.model.Role;
@@ -12,12 +13,13 @@ import com.example.project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -42,6 +44,8 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id);
     }
 
+
+
     @Override
     public User save(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -59,20 +63,54 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User createUser(UserDTO userDTO) throws DataNotFoundException {
-        User newUser = User.builder()
-                .email(userDTO.getEmail())
-                .firstName(userDTO.getFirstName())
-                .lastName(userDTO.getLastName())
-                .address(userDTO.getAddress())
-                .phone(userDTO.getPhone())
-                .password(userDTO.getPassword())
-                .build();
-        Role role = roleRepository.findById(userDTO.getRoleId())
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Optional<User> userOptional = userRepository.findByEmail(username);
+        if (!userOptional.isPresent()) {
+            throw new UsernameNotFoundException(username);
+        }
+        return UserPrinciple.build(userOptional.get());
+    }
+
+
+    @Override
+    public UserDTO createUser(UserCreateDTO userCreateDTO) throws DataNotFoundException {
+        Role role = roleRepository.findById(userCreateDTO.getRoleId())
                 .orElseThrow(() -> new DataNotFoundException("Role not found "));
-        newUser.setRole(role);
-        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
-        return userRepository.save(newUser);
+        System.out.println(role);
+        User newUser = User.builder()
+                .email(userCreateDTO.getEmail())
+                .firstName(userCreateDTO.getFirstName())
+                .lastName(userCreateDTO.getLastName())
+                .password(passwordEncoder.encode(userCreateDTO.getPassword()))
+                .address(userCreateDTO.getAddress())
+                .phone(userCreateDTO.getPhone())
+                .role(role)
+                .build();
+        userRepository.save(newUser);
+        return UserDTO.builder()
+                .firstName(newUser.getFirstName())
+                .lastName(newUser.getLastName())
+                .email(newUser.getEmail())
+                .roleId(newUser.getRole().getId())
+                .address(newUser.getAddress())
+                .phone(newUser.getPhone())
+                .build();
+    }
+
+    //get who has just created an account
+    private User  getAuthenticatedAccount() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("Cannot retrieve authenticated user.");
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails) {
+            return (User) principal;
+        }
+
+        throw new IllegalStateException("Authenticated user is not an instance of UserDetails.");
     }
 
     @Override
@@ -97,24 +135,21 @@ public class UserServiceImpl implements UserService {
         exitstingUser.setLastName(userDTO.getLastName());
         exitstingUser.setAddress(userDTO.getAddress());
         exitstingUser.setPhone(userDTO.getPhone());
-        exitstingUser.setPassword(userDTO.getPassword());
         exitstingUser.setRole(exitstingRole);
         return userRepository.save(exitstingUser);
+
     }
 
     @Override
-    public void deleteUser(Long id) {
-        Optional<User> optionalUser = userRepository.findById(id);
-        optionalUser.ifPresent(userRepository::delete);
+    public void deleteUser(Long id) throws DataNotFoundException {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(
+                        () -> new DataNotFoundException
+                                ("Cannot delete order with id: " + id));
+        existingUser.setDeleteFlag(true);
+        userRepository.save(existingUser);
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> userOptional = userRepository.findByEmail(username);
-        if (!userOptional.isPresent()) {
-            throw new UsernameNotFoundException(username);
-        }
-        return UserPrinciple.build(userOptional.get());
-    }
+
 
 }
