@@ -27,7 +27,7 @@ public class UserController {
     // Get list user
     @GetMapping("") // http://localhost:3000/api/users?page=1&limit=5
     public ResponseEntity<ListUserResponse> getUsers(@RequestParam("page") int page, @RequestParam("limit") int limit) {
-        PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createddAt").descending());
+        PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createdAt").descending());
         Page<UserResponse> userPage = userService.getAllUsers(pageRequest);
         int totalPage = userPage.getTotalPages();
         List<UserResponse> users = userPage.getContent();

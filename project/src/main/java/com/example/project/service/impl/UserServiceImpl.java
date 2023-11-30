@@ -10,6 +10,7 @@ import com.example.project.repository.RoleRepository;
 import com.example.project.repository.UserRepository;
 import com.example.project.model.UserPrinciple;
 import com.example.project.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,15 +22,13 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
@@ -104,6 +103,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<UserResponse> getAllUsers(PageRequest pageRequest) {
         // get number of user  for page and limit
+
         return userRepository.findAll(pageRequest).map(UserResponse:: mapUser);
     }
 
