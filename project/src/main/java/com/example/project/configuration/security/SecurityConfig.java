@@ -88,11 +88,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/dac/infor").hasAuthority(String.valueOf(EnumRole.ROLE_DAC))
                 .antMatchers("/api/advertiser/infor").hasAuthority(String.valueOf(EnumRole.ROLE_ADVERTISER))
                 .anyRequest().authenticated()
-                .and()
-                .logout()
-                .logoutUrl("/api/logout") // Specify the URL for logout
-                .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler()) // Return 200 OK on successful logout
-                .permitAll()
                 .and().csrf().disable();
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling().accessDeniedHandler(customAccessDeniedHandler());
