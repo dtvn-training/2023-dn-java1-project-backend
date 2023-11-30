@@ -1,5 +1,6 @@
 package com.example.project.controller;
 
+import com.example.project.configuration.filter.JwtAuthenticationFilter;
 import com.example.project.exception.TokenRefreshException;
 import com.example.project.model.JwtResponse;
 import com.example.project.model.RefreshToken;
@@ -13,15 +14,19 @@ import com.example.project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.jaas.JaasAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 import java.util.Date;
 
 @CrossOrigin("*")
@@ -89,15 +94,24 @@ public class AuthController {
                                 LocaleContextHolder.getLocale())));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser() {
-        User userDetails = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = userDetails.getId();
-        refreshTokenService.deleteByUserId(userId);
-        return ResponseEntity.ok(new MessageResponse(messageSource.getMessage("message.logout.success",
+    @PostMapping("/signout")
+    public ResponseEntity<?> logoutUser(HttpServletRequest request, Principal principal) {
+        String token = JwtAuthenticationFilter.getJwtFromRequest(request);
+        if (!jwtService.validateJwtToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse(
+                    messageSource.getMessage("invalid.jwt.token",
+                    null,
+                    LocaleContextHolder.getLocale())));
+        }
+        String email = principal.getName();
+        User currentUser = userService.findByEmail(email).get();
+        refreshTokenService.deleteByUserId(currentUser.getId());
+        return ResponseEntity.ok(new MessageResponse(messageSource.getMessage(
+                "message.logout.success",
                 null,
                 LocaleContextHolder.getLocale())));
     }
+
 
     @GetMapping("/admin/infor")
     public String admin() {

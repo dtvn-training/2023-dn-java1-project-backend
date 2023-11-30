@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Set;
 
 @SpringBootApplication
-@ComponentScan("com.example")
 public class ProjectApplication {
 
     @Autowired
@@ -31,31 +30,32 @@ public class ProjectApplication {
 
     @PostConstruct
     public void init() {
-        List<User> users = (List<User>) userService.findAll();
-        List<Role> roleList = (List<Role>) roleService.findAll();
-//		if (roleList.isEmpty()) {
-//			Role roleAdmin = new Role();
-//			roleAdmin.setId(1L);
-//			roleAdmin.setName(String.valueOf(EnumRole.ROLE_ADMIN));
-//			roleService.save(roleAdmin);
-//			Role roleDac = new Role();
-//			roleDac.setId(2L);
-//			roleDac.setName(String.valueOf(EnumRole.ROLE_DAC));
-//			roleService.save(roleDac);
-//			Role roleAdvertiser = new Role();
-//			roleAdvertiser.setId(3L);
-//			roleAdvertiser.setName(String.valueOf(EnumRole.ROLE_ADVERTISER));
-//			roleService.save(roleAdvertiser);
-//		}
-//		if (users.isEmpty()) {
-//			User user = new User();
-//			Role userRole = new Role();
-//			userRole.setId(1L);
-//			user.setEmail("tanphat@gmail.com");
-//			user.setPassword("123456");
-//			user.setRole(userRole);
-//			userService.save(user);
-//		}
-//	}
+//        List<User> users = (List<User>) userService.findAll();
+//        List<Role> roleList = (List<Role>) roleService.findAll();
+//        if (roleList.isEmpty()) {
+//            Role roleAdmin = new Role();
+//            roleAdmin.setId(1L);
+//            roleAdmin.setName(String.valueOf(EnumRole.ROLE_ADMIN));
+//            roleService.save(roleAdmin);
+//            Role roleDac = new Role();
+//            roleDac.setId(2L);
+//            roleDac.setName(String.valueOf(EnumRole.ROLE_DAC));
+//            roleService.save(roleDac);
+//            Role roleAdvertiser = new Role();
+//            roleAdvertiser.setId(3L);
+//            roleAdvertiser.setName(String.valueOf(EnumRole.ROLE_ADVERTISER));
+//            roleService.save(roleAdvertiser);
+//        }
+//        if (users.isEmpty()) {
+//            User user = new User();
+//            Role userRole = new Role();
+//            userRole.setId(1L);
+//            user.setEmail("tanphat1@gmail.com");
+//            user.setPassword("123456@phat");
+//            user.setRole(userRole);
+//            userService.save(user);
+//        }
+//    }
     }
 }
+

@@ -5,6 +5,7 @@ import com.example.project.configuration.custom.RestAuthenticationEntryPoint;
 import com.example.project.configuration.filter.JwtAuthenticationFilter;
 import com.example.project.model.EnumRole;
 import com.example.project.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -14,14 +15,18 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -30,6 +35,8 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
@@ -75,16 +82,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.httpBasic().authenticationEntryPoint(restServicesEntryPoint());
         http.authorizeRequests()
                 .antMatchers("/api/login").permitAll()
+                .antMatchers("/api/signout").authenticated()
                 .antMatchers("/api/refreshtoken").permitAll()
                 .antMatchers("/api/admin/infor").hasAuthority(String.valueOf(EnumRole.ROLE_ADMIN))
                 .antMatchers("/api/dac/infor").hasAuthority(String.valueOf(EnumRole.ROLE_DAC))
                 .antMatchers("/api/advertiser/infor").hasAuthority(String.valueOf(EnumRole.ROLE_ADVERTISER))
                 .anyRequest().authenticated()
+                .and()
+                .logout()
+                .logoutUrl("/api/logout") // Specify the URL for logout
+                .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler()) // Return 200 OK on successful logout
+                .permitAll()
                 .and().csrf().disable();
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling().accessDeniedHandler(customAccessDeniedHandler());
         http.sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
         http.cors();
     }
 
