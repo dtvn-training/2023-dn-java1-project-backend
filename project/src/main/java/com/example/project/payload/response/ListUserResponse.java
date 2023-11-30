@@ -1,10 +1,10 @@
-package com.example.project.responses;
+package com.example.project.payload.response;
+
 
 import com.example.project.model.User;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 @Getter
@@ -12,24 +12,22 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserResponse extends BaseResponse {
+public class ListUserResponse extends BaseResponse {
     private  String email;
     private  String firstName;
     private  String lastName;
     private  String address;
     private  String phone;
-    private  String password;
     @JsonProperty("role_id")
     private  Long roleId;
 
-    public static UserResponse mapUser(User user){
-        UserResponse userResponse = UserResponse.builder()
+    public static ListUserResponse mapUser(User user){
+        ListUserResponse userResponse = ListUserResponse.builder()
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .address(user.getAddress())
                 .phone(user.getPhone())
-                .password(user.getPassword())
                 .roleId(user.getRole().getId())
                 .build();
         userResponse.setCreatedAt(user.getCreatedAt());
@@ -37,6 +35,7 @@ public class UserResponse extends BaseResponse {
         return userResponse;
     }
 
-    private List<UserResponse> userResponses;
+    private List<ListUserResponse> userResponses;
     private int totalPage;
 }
+

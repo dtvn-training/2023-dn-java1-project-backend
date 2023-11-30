@@ -5,10 +5,10 @@ import com.example.project.dto.UserDTO;
 import com.example.project.exception.DataNotFoundException;
 import com.example.project.model.Role;
 import com.example.project.model.User;
+import com.example.project.payload.response.ListUserResponse;
 import com.example.project.repository.RoleRepository;
 import com.example.project.repository.UserRepository;
 import com.example.project.model.UserPrinciple;
-import com.example.project.responses.UserResponse;
 import com.example.project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -77,6 +77,7 @@ public class UserServiceImpl implements UserService {
         Role role = roleRepository.findById(userCreateDTO.getRoleId())
                 .orElseThrow(() -> new DataNotFoundException("Role not found "));
         System.out.println(role);
+        //User createBy = getAuthenticatedAccount();
         User newUser = User.builder()
                 .email(userCreateDTO.getEmail())
                 .firstName(userCreateDTO.getFirstName())
@@ -120,9 +121,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserResponse> getAllUser(PageRequest pageRequest) {
+    public Page<ListUserResponse> getAllUser(PageRequest pageRequest) {
         // get number of product for page and limit
-        return userRepository.findAll(pageRequest).map(UserResponse:: mapUser);
+        return null;
     }
 
     @Override

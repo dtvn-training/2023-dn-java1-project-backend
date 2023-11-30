@@ -3,7 +3,8 @@ package com.example.project.controller;
 import com.example.project.dto.UserCreateDTO;
 import com.example.project.dto.UserDTO;
 import com.example.project.model.User;
-import com.example.project.responses.UserResponse;
+import com.example.project.payload.response.ListUserResponse;
+import com.example.project.payload.response.UserCreateResponse;
 import com.example.project.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,18 +23,18 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     @GetMapping("") // http://localhost:8080/api/v1/products?page=1&limit=10
-    public ResponseEntity<UserResponse> getProducts(@RequestParam("page") int page, @RequestParam("limit") int limit) {
+    public ResponseEntity<ListUserResponse> getProducts(@RequestParam("page") int page, @RequestParam("limit") int limit) {
         // page start 0 -> limit
         // get và sắp sếp số lượng sản phẩm theo trang và số lượng.
         PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createAt").descending());
         // get product
-        Page<UserResponse> userPage = userService.getAllUser(pageRequest);
+        Page<ListUserResponse> userPage = userService.getAllUser(pageRequest);
         // get tổng số trang
         int totalPage = userPage.getTotalPages();
         // get số sản phẩm đã được tính theo trang
-        List<UserResponse> products = userPage.getContent();
+        List<ListUserResponse> products = userPage.getContent();
         // map
-        UserResponse userResponse = UserResponse.builder()
+        ListUserResponse userResponse = ListUserResponse.builder()
                 .userResponses(products)
                 .totalPage(totalPage)
                 .build();
@@ -44,7 +45,7 @@ public class UserController {
     public ResponseEntity<?> getProduct(@PathVariable Long id) {
         try {
             User user = userService.getUserByID(id);
-            return ResponseEntity.ok(UserResponse.mapUser(user));
+            return ResponseEntity.ok(ListUserResponse.mapUser(user));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -63,8 +64,15 @@ public class UserController {
             }
             request.setRoleId(1L);
             UserDTO newUser = userService.createUser(request);
-            // trả về ok nếu vượt qua kiểm tra
-            return ResponseEntity.ok("Create user success");
+            var userModel = UserCreateResponse.builder()
+                    .firstName(newUser.getFirstName())
+                    .lastName(newUser.getLastName())
+                    .email(newUser.getEmail())
+                    .roleId(newUser.getRoleId())
+                    .address(newUser.getAddress())
+                    .phone(newUser.getPhone())
+                    .build();
+            return ResponseEntity.ok(userModel);
         } catch (Exception e) {
             System.out.println(e.toString());
             return ResponseEntity.badRequest().body(e.getMessage());
