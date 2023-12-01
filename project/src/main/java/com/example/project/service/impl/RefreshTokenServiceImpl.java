@@ -3,7 +3,7 @@ package com.example.project.service.impl;
 import com.example.project.exception.TokenRefreshException;
 import com.example.project.model.RefreshToken;
 import com.example.project.repository.RefreshTokenRepository;
-import com.example.project.repository.UserRepository;
+import com.example.project.repository.IUserRepository;
 import com.example.project.service.RefreshTokenService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -31,7 +31,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private IUserRepository userRepository;
 
     @Override
     public Optional<RefreshToken> findByToken(String token) {

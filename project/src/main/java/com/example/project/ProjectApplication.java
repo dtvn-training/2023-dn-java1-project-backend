@@ -1,10 +1,9 @@
 package com.example.project;
 
-import com.example.project.model.EnumRole;
 import com.example.project.model.Role;
 import com.example.project.model.User;
 import com.example.project.service.RoleService;
-import com.example.project.service.UserService;
+import com.example.project.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -20,7 +19,7 @@ import java.util.Set;
 public class ProjectApplication {
 
     @Autowired
-    private UserService userService;
+    private IUserService userService;
 
     @Autowired
     private RoleService roleService;

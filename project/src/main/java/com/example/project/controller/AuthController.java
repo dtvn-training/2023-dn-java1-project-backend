@@ -9,7 +9,7 @@ import com.example.project.payload.response.MessageResponse;
 import com.example.project.payload.response.TokenRefreshResponse;
 import com.example.project.service.JwtService;
 import com.example.project.service.RefreshTokenService;
-import com.example.project.service.UserService;
+import com.example.project.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -34,7 +34,7 @@ public class AuthController {
     private JwtService jwtService;
 
     @Autowired
-    private UserService userService;
+    private IUserService userService;
 
     @Autowired
     private RefreshTokenService refreshTokenService;

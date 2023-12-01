@@ -1,7 +1,7 @@
 package com.example.project.configuration.filter;
 
 import com.example.project.service.JwtService;
-import com.example.project.service.UserService;
+import com.example.project.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +21,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtService jwtService;
 
     @Autowired
-    private UserService userService;
+    private IUserService userService;
 
     private static final int BEARER_PREFIX_LENGTH = 7;
 

@@ -6,15 +6,13 @@ import com.example.project.dto.UserDTO;
 import com.example.project.exception.ErrorException;
 import com.example.project.model.Role;
 import com.example.project.model.User;
-import com.example.project.payload.response.UserResponse;
-import com.example.project.repository.RoleRepository;
-import com.example.project.repository.UserRepository;
+import com.example.project.repository.IRoleRepository;
+import com.example.project.repository.IUserRepository;
 import com.example.project.model.UserPrinciple;
-import com.example.project.service.UserService;
+import com.example.project.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -29,11 +27,11 @@ import static com.example.project.constants.ErrorMessage.USER_ID_INVALID;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements IUserService {
 
-    private final UserRepository userRepository;
+    private final IUserRepository userRepository;
 
-    private final RoleRepository roleRepository;
+    private final IRoleRepository roleRepository;
 
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper mapper = new ModelMapper();
