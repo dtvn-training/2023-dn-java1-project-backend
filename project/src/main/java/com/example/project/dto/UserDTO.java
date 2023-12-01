@@ -13,6 +13,7 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDTO {
+    private String id;
     private  String email;
     private  String firstName;
     private  String lastName;

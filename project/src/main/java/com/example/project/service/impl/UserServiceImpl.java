@@ -3,7 +3,6 @@ package com.example.project.service.impl;
 import com.example.project.constants.ErrorMessage;
 import com.example.project.dto.UserCreateDTO;
 import com.example.project.dto.UserDTO;
-import com.example.project.exception.DataNotFoundException;
 import com.example.project.exception.ErrorException;
 import com.example.project.model.Role;
 import com.example.project.model.User;
@@ -16,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +25,7 @@ import javax.transaction.Transactional;
 import java.util.Optional;
 
 import static com.example.project.constants.ErrorConstants.ERROR_ROLE_NOT_FOUND;
+import static com.example.project.constants.ErrorMessage.USER_ID_INVALID;
 
 @Service
 @RequiredArgsConstructor
@@ -75,9 +76,9 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserDTO createUser(UserCreateDTO userCreateDTO) throws DataNotFoundException {
+    public UserDTO createUser(UserCreateDTO userCreateDTO) {
         Role role = roleRepository.findById(userCreateDTO.getRoleId())
-                .orElseThrow(() -> new DataNotFoundException("Role not found "));
+                .orElseThrow(() -> new ErrorException(ERROR_ROLE_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
         System.out.println(role);
         User newUser = User.builder()
                 .email(userCreateDTO.getEmail())
@@ -102,12 +103,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByID(Long userID) throws Exception {
         return userRepository.findById(userID)
-                .orElseThrow(() -> new DataNotFoundException("cannot find user not found id: " + userID));
+                .orElseThrow(() -> new ErrorException(USER_ID_INVALID, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
     }
 
     @Override
-    public Page<UserResponse> getAllUsers(PageRequest pageRequest) {
-        return userRepository.findAll(pageRequest).map(UserResponse:: mapUser);
+    public Page<UserDTO> getAllUsers(String keySearch, Pageable pageable) {
+        if(keySearch == null || keySearch.isEmpty()){
+            Page<User> allUser = userRepository.findAll(pageable);
+            return allUser.map(user -> mapper.map(user, UserDTO.class));
+        }
+        else {
+            Page<User> allUser = userRepository.findNameOrEmail(keySearch,pageable);
+            return allUser.map(user -> mapper.map(user, UserDTO.class));
+        }
     }
 
     @Override
@@ -129,7 +137,7 @@ public class UserServiceImpl implements UserService {
             }
             return mapper.map(userRepository.save(oldUser),UserDTO.class);
         }else {
-            throw new ErrorException(ErrorMessage.ACCOUNT_NOT_FOUND,  ErrorMessage.RESOURCE_NOT_FOUND_CODE);
+            throw new ErrorException(ErrorMessage.USER_NOT_FOUND,  ErrorMessage.RESOURCE_NOT_FOUND_CODE);
         }
 
     }
@@ -139,7 +147,7 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Long id) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(
-                        () -> new RuntimeException(ErrorMessage.ACCOUNT_NOT_FOUND));
+                        () -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
         existingUser.setDeleteFlag(true);
         userRepository.save(existingUser);
     }

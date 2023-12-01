@@ -53,10 +53,13 @@ public class User {
     @Column(name = "delete_flag", nullable = false)
     private boolean deleteFlag;
 
+    @Column(name = "delete_at", nullable = true)
+    private LocalDateTime deleteAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at", nullable = true)
     private LocalDateTime updatedAt;
 
 
@@ -68,6 +71,7 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+        deleteAt = LocalDateTime.now();
     }
 
 }

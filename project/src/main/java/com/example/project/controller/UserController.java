@@ -12,6 +12,7 @@ import com.example.project.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,16 +30,11 @@ public class UserController {
 
     // Get list user
     @GetMapping("") // http://localhost:3000/api/users?page=1&limit=5
-    public ResponseEntity<ListUserResponse> getUsers(@RequestParam("page") int page, @RequestParam("limit") int limit) {
-        PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createdAt").descending());
-        Page<UserResponse> userPage = userService.getAllUsers(pageRequest);
-        int totalPage = userPage.getTotalPages();
-        List<UserResponse> users = userPage.getContent();
-        ListUserResponse listUserResponse = ListUserResponse.builder()
-                .listUser(users)
-                .totalPage(totalPage)
-                .build();
-        return ResponseEntity.ok(listUserResponse);
+    public ResponseEntity<ResponseMessage<Page<UserDTO>>> getUsers(@RequestParam(value = "keySearch", required = false) String keySearch, @RequestParam("page") int page, @RequestParam("limit") int limit) {
+        Pageable pageable = PageRequest.of(page, limit,Sort.by("createdAt").descending());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseMessage<Page<UserDTO>>(ErrorMessage.USER_GET_ALL_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE,
+                        userService.getAllUsers(keySearch, pageable)));
     }
 
     // create user
@@ -83,10 +79,10 @@ public class UserController {
         UserDTO accountUpdated = userService.updateUser(id, request);
         if (accountUpdated != null) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(ErrorMessage.ACCOUNT_UPDATE_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE,accountUpdated));
+                    .body(new ResponseMessage(ErrorMessage.USER_UPDATE_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE,accountUpdated));
         } else {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(ErrorMessage.ACCOUNT_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
+                    .body(new ResponseMessage(ErrorMessage.USER_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
         }
 
     }
@@ -96,14 +92,14 @@ public class UserController {
         try {
             userService.deleteUser(id);
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage<>(ErrorMessage.ACCOUNT_DELETE_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE));
+                    .body(new ResponseMessage(ErrorMessage.USER_DELETE_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE));
         }  catch (NumberFormatException e){
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage<>(ErrorMessage.ACCOUNT_ID_INVALID, ErrorMessage.ACCOUNT_BAD_REQUEST));
+                    .body(new ResponseMessage(ErrorMessage.USER_ID_INVALID, ErrorMessage.USER_BAD_REQUEST));
         }
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage<>(ErrorMessage.ACCOUNT_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
+                    .body(new ResponseMessage(ErrorMessage.USER_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
         }
     }
 }

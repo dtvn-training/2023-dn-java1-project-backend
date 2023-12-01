@@ -15,4 +15,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT a FROM User a WHERE a.deleteFlag = 0")
     Page<User> findAll(Pageable pageable);
+
+    @Query("SELECT a FROM User a WHERE LOWER(a.lastName) " +
+            "LIKE LOWER(concat('%', :lastName, '%')) or LOWER(a.email) LIKE LOWER(concat('%', :lastName, '%'))")
+    Page<User> findNameOrEmail (String lastName, Pageable pageable);
 }
