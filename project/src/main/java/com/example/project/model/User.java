@@ -73,5 +73,4 @@ public class User {
         updatedAt = LocalDateTime.now();
         deleteAt = LocalDateTime.now();
     }
-
 }
