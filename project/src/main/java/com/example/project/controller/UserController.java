@@ -1,14 +1,12 @@
 package com.example.project.controller;
 
 import com.example.project.constants.ErrorMessage;
-import com.example.project.dto.UserCreateDTO;
 import com.example.project.dto.UserDTO;
 import com.example.project.exception.ResponseMessage;
 import com.example.project.model.User;
-import com.example.project.payload.response.ListUserResponse;
-import com.example.project.payload.response.UserCreateResponse;
-import com.example.project.payload.response.UserResponse;
-import com.example.project.service.UserService;
+import com.example.project.dto.response.UserCreateResponse;
+import com.example.project.dto.response.UserResponse;
+import com.example.project.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,7 +24,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/users")
 public class UserController {
-    private final UserService userService;
+    private final IUserService userService;
 
     // Get list user
     @GetMapping("") // http://localhost:3000/api/users?page=1&limit=5
@@ -39,7 +37,7 @@ public class UserController {
 
     // create user
     @PostMapping("")
-    public ResponseEntity<?> createUser(@RequestBody @Valid UserCreateDTO request, BindingResult result) {
+    public ResponseEntity<?> createUser(@RequestBody @Valid UserDTO request, BindingResult result) {
         try {
             if (result.hasErrors()) {
                 List<String> errMessage = result.getAllErrors()

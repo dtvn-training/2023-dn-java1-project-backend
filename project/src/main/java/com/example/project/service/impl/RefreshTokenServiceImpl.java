@@ -2,9 +2,9 @@ package com.example.project.service.impl;
 
 import com.example.project.exception.TokenRefreshException;
 import com.example.project.model.RefreshToken;
-import com.example.project.repository.RefreshTokenRepository;
-import com.example.project.repository.UserRepository;
-import com.example.project.service.RefreshTokenService;
+import com.example.project.repository.IRefreshTokenRepository;
+import com.example.project.repository.IUserRepository;
+import com.example.project.service.IRefreshTokenService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class RefreshTokenServiceImpl implements RefreshTokenService {
+public class RefreshTokenServiceImpl implements IRefreshTokenService {
 
     @Value("${app.jwt.refreshTokenExpirationMs}")
     private Long refreshTokenDurationMs;
@@ -28,10 +28,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private String SECRET_KEY;
 
     @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
+    private IRefreshTokenRepository refreshTokenRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private IUserRepository userRepository;
 
     @Override
     public Optional<RefreshToken> findByToken(String token) {

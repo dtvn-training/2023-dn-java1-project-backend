@@ -1,7 +1,6 @@
-package com.example.project.payload.response;
+package com.example.project.dto.response;
 
 import com.example.project.model.User;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 @Getter

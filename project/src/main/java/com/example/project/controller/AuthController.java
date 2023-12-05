@@ -4,13 +4,13 @@ import com.example.project.configuration.filter.JwtAuthenticationFilter;
 import com.example.project.exception.TokenRefreshException;
 import com.example.project.model.RefreshToken;
 import com.example.project.model.User;
-import com.example.project.payload.request.TokenRefreshRequest;
-import com.example.project.payload.response.JwtResponse;
-import com.example.project.payload.response.MessageResponse;
-import com.example.project.payload.response.TokenRefreshResponse;
+import com.example.project.dto.request.TokenRefreshRequest;
+import com.example.project.dto.response.JwtResponse;
+import com.example.project.dto.response.MessageResponse;
+import com.example.project.dto.response.TokenRefreshResponse;
 import com.example.project.service.JwtService;
-import com.example.project.service.RefreshTokenService;
-import com.example.project.service.UserService;
+import com.example.project.service.IRefreshTokenService;
+import com.example.project.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -18,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authentication.jaas.JaasAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -39,10 +38,10 @@ public class AuthController {
     private JwtService jwtService;
 
     @Autowired
-    private UserService userService;
+    private IUserService userService;
 
     @Autowired
-    private RefreshTokenService refreshTokenService;
+    private IRefreshTokenService refreshTokenService;
 
     @Autowired
     private MessageSource messageSource;
@@ -65,7 +64,7 @@ public class AuthController {
 
         RefreshToken refreshToken = refreshTokenService.generateRefreshToken(currentUser.getId());
         var jwtResponse = JwtResponse.builder()
-                .token(jwt)
+                .accessToken(jwt)
                 .id(currentUser.getId())
                 .type("Bearer")
                 .email(userDetails.getUsername())
@@ -76,7 +75,7 @@ public class AuthController {
         return ResponseEntity.ok(jwtResponse);
     }
 
-    @PostMapping("/refreshtoken")
+    @PostMapping("/tokens/refresh")
     public ResponseEntity<?> refresh(@RequestBody TokenRefreshRequest request) {
         String requestRefreshToken = request.getRefreshToken();
 
