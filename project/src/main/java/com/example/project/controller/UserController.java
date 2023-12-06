@@ -75,15 +75,15 @@ public class UserController {
     //Update user
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@Valid @PathVariable Long id, @Valid @RequestBody UserDTO request) {
-        UserDTO accountUpdated = userService.updateUser(id, request);
-        if (accountUpdated != null) {
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(ErrorMessage.USER_UPDATE_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE,accountUpdated));
-        } else {
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(ErrorMessage.USER_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
-        }
-
+//        UserDTO accountUpdated = userService.updateUser(id, request);
+//        if (accountUpdated != null) {
+//            return ResponseEntity.status(HttpStatus.OK)
+//                    .body(new ResponseMessage(ErrorMessage.USER_UPDATE_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE,accountUpdated));
+//        } else {
+//            return ResponseEntity.status(HttpStatus.OK)
+//                    .body(new ResponseMessage(ErrorMessage.USER_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
+//        }
+        return null;
     }
     // Delete User
     @DeleteMapping("/{id}")
