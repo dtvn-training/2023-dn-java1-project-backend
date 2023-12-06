@@ -15,11 +15,11 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDTO {
+    private Long id;
     private  String email;
     private  String firstName;
     private  String lastName;
     private  String address;
-    private String password;
     private  String phone;
     private  Long roleId;
 }

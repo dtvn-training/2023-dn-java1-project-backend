@@ -79,7 +79,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserDTO createUser(UserCreateRequestDTO userCreateDTO) {
         Role role = roleRepository.findById(userCreateDTO.getRoleId())
-                .orElseThrow(() -> new ErrorException("ERROR_EMAIL_NOT_VALID", ErrorMessage.RESOURCE_NOT_FOUND_CODE));
+                .orElseThrow(() -> new ErrorException(messageSource.getMessage("ERROR_EMAIL_NOT_VALID", null, LocaleContextHolder.getLocale())));
         User newUser = User.builder()
                 .email(userCreateDTO.getEmail())
                 .firstName(userCreateDTO.getFirstName())
@@ -103,7 +103,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public User getUserByID(Long userID) throws Exception {
         return userRepository.findById(userID)
-                .orElseThrow(() -> new ErrorException(USER_ID_INVALID, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
+                .orElseThrow(() -> new ErrorException(messageSource.getMessage("USER_ID_INVALID", null, LocaleContextHolder.getLocale())));
     }
 
     @Override
@@ -133,11 +133,11 @@ public class UserServiceImpl implements IUserService {
             if(roleUpdate.isPresent()){
                 oldUser.setRole(roleUpdate.get());
             }else{
-                logger.error("{} -> Message: {} ",messageSource.getMessage("",null, LocaleContextHolder.getLocale()));
+                throw new ErrorException(messageSource.getMessage("USER_UPDATE_SUCCESS",null, LocaleContextHolder.getLocale()));
             }
             return mapper.map(userRepository.save(oldUser),UserDTO.class);
         }else {
-            throw new ErrorException(ErrorMessage.USER_NOT_FOUND,  ErrorMessage.RESOURCE_NOT_FOUND_CODE);
+            throw new ErrorException(messageSource.getMessage("USER_NOT_FOUND", null, LocaleContextHolder.getLocale()));
         }
 
     }
@@ -147,7 +147,7 @@ public class UserServiceImpl implements IUserService {
     public void deleteUser(Long id) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(
-                        () -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
+                        () -> new ErrorException(messageSource.getMessage("USER_NOT_FOUND", null, LocaleContextHolder.getLocale())));
         existingUser.setDeleteFlag(true);
         userRepository.save(existingUser);
     }

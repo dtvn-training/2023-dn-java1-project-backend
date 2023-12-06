@@ -4,9 +4,13 @@ import lombok.Getter;
 
 @Getter
 public class ErrorException extends RuntimeException{
-    private final int errorCode;
-    public ErrorException(String message, int errorCode) {
+    private final String errors;
+    public ErrorException(String message) {
         super(message);
-        this.errorCode = errorCode;
+        this.errors = message;
+    }
+    public ErrorException(String message, String errors) {
+        super(message);
+        this.errors = errors;
     }
 }
