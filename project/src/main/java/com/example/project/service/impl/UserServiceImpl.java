@@ -80,7 +80,7 @@ public class UserServiceImpl implements IUserService {
     public UserDTO createUser(UserCreateRequestDTO userCreateDTO) {
         Role role = roleRepository.findById(userCreateDTO.getRoleId())
                 .orElseThrow(() -> new ErrorException(messageSource.getMessage("ERROR_EMAIL_NOT_VALID", null, LocaleContextHolder.getLocale())));
-        User newUser = User.builder()
+        var newUser = User.builder()
                 .email(userCreateDTO.getEmail())
                 .firstName(userCreateDTO.getFirstName())
                 .lastName(userCreateDTO.getLastName())
@@ -89,7 +89,13 @@ public class UserServiceImpl implements IUserService {
                 .phone(userCreateDTO.getPhone())
                 .role(role)
                 .build();
-        userRepository.save(newUser);
+
+        try {
+            userRepository.save(newUser);
+        }
+        catch (Exception e) {
+            throw new ErrorException(messageSource.getMessage("USER_ID_INVALID", null, LocaleContextHolder.getLocale()));
+        }
         return UserDTO.builder()
                 .firstName(newUser.getFirstName())
                 .lastName(newUser.getLastName())
@@ -98,6 +104,7 @@ public class UserServiceImpl implements IUserService {
                 .address(newUser.getAddress())
                 .phone(newUser.getPhone())
                 .build();
+
     }
 
     @Override
