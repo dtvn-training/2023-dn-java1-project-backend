@@ -1,11 +1,14 @@
 package com.example.project.controller;
 
 import com.example.project.constants.ErrorMessage;
-import com.example.project.dto.UserDTO;
+import com.example.project.dto.request.UserCreateRequestDTO;
+import com.example.project.dto.response.UserDTO;
 import com.example.project.exception.ResponseMessage;
+import com.example.project.model.Role;
 import com.example.project.model.User;
 import com.example.project.dto.response.UserCreateResponse;
 import com.example.project.dto.response.UserResponse;
+import com.example.project.repository.IRoleRepository;
 import com.example.project.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,12 +23,15 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static java.net.HttpURLConnection.HTTP_OK;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("api/users")
 public class UserController {
     private final IUserService userService;
-
+    private  final IRoleRepository iRoleRepository;
     // Get list user
     @GetMapping("") // http://localhost:3000/api/users?page=1&limit=5
     public ResponseEntity<ResponseMessage<Page<UserDTO>>> getUsers(@RequestParam(value = "keySearch", required = false) String keySearch, @RequestParam("page") int page, @RequestParam("limit") int limit) {
@@ -37,7 +43,7 @@ public class UserController {
 
     // create user
     @PostMapping("")
-    public ResponseEntity<?> createUser(@RequestBody @Valid UserDTO request, BindingResult result) {
+    public ResponseEntity<?> createUser(@RequestBody @Valid UserCreateRequestDTO request, BindingResult result) {
         try {
             if (result.hasErrors()) {
                 List<String> errMessage = result.getAllErrors()
@@ -99,5 +105,18 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage(ErrorMessage.USER_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
         }
+    }
+
+    @GetMapping("/getRoles")
+    public ResponseEntity<ResponseMessage<List<Role>>> getAllRole() {
+        List<Role> listRole;
+        try {
+            listRole = iRoleRepository.findAll();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage(AppConstants.ROLES_GET_ALL_FAILED, HTTP_NOT_FOUND));
+        }
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseMessage(AppConstants.ROLES_GET_ALL_SUCCESS, HTTP_OK, listRole));
     }
 }

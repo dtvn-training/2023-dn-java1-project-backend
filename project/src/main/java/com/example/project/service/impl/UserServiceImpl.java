@@ -1,7 +1,8 @@
 package com.example.project.service.impl;
 
 import com.example.project.constants.ErrorMessage;
-import com.example.project.dto.UserDTO;
+import com.example.project.dto.request.UserCreateRequestDTO;
+import com.example.project.dto.response.UserDTO;
 import com.example.project.exception.ErrorException;
 import com.example.project.model.Role;
 import com.example.project.model.User;
@@ -78,16 +79,16 @@ public class UserServiceImpl implements IUserService {
 
 
     @Override
-    public UserDTO createUser(UserDTO userDTO) {
-        Role role = roleRepository.findById(userDTO.getRoleId())
+    public UserDTO createUser(UserCreateRequestDTO userCreateDTO) {
+        Role role = roleRepository.findById(userCreateDTO.getRoleId())
                 .orElseThrow(() -> new ErrorException("ERROR_EMAIL_NOT_VALID", ErrorMessage.RESOURCE_NOT_FOUND_CODE));
         User newUser = User.builder()
-                .email(userDTO.getEmail())
-                .firstName(userDTO.getFirstName())
-                .lastName(userDTO.getLastName())
-                .address(userDTO.getAddress())
-                .password(passwordEncoder.encode(userDTO.getPassword()))
-                .phone(userDTO.getPhone())
+                .email(userCreateDTO.getEmail())
+                .firstName(userCreateDTO.getFirstName())
+                .lastName(userCreateDTO.getLastName())
+                .address(userCreateDTO.getAddress())
+                .password(passwordEncoder.encode(userCreateDTO.getPassword()))
+                .phone(userCreateDTO.getPhone())
                 .role(role)
                 .build();
         userRepository.save(newUser);

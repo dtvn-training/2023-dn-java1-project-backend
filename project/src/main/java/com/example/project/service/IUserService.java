@@ -1,6 +1,7 @@
 package com.example.project.service;
 
-import com.example.project.dto.UserDTO;
+import com.example.project.dto.request.UserCreateRequestDTO;
+import com.example.project.dto.response.UserDTO;
 import com.example.project.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +12,7 @@ import java.util.Optional;
 public interface IUserService extends IGeneralService<User>, UserDetailsService {
     Optional<User> findByEmail(String email);
 
-    UserDTO createUser(UserDTO userDTO) throws Exception;
+    UserDTO createUser(UserCreateRequestDTO userCreateDTO) throws Exception;
     User getUserByID(Long userID) throws Exception;
     Page<UserDTO> getAllUsers(String keysearch, Pageable pageable);
 

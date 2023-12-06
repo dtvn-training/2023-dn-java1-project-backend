@@ -1,4 +1,4 @@
-package com.example.project.dto;
+package com.example.project.dto.response;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,19 +15,11 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDTO {
-    @JsonProperty("email")
-    @NotBlank(message = "Email is required")
     private  String email;
-    @NotBlank(message = "First name is required")
     private  String firstName;
-    @NotBlank(message = "Last name is required")
     private  String lastName;
-    @JsonProperty("address")
     private  String address;
     private String password;
-    @JsonProperty("phone")
     private  String phone;
-    @NotNull(message = "Role id is required")
-    @JsonProperty("role_id")
     private  Long roleId;
 }
