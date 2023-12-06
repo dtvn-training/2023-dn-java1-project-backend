@@ -1,0 +1,122 @@
+package com.example.project.controller;
+
+import com.example.project.constants.ErrorMessage;
+import com.example.project.dto.request.UserCreateRequestDTO;
+import com.example.project.dto.response.UserDTO;
+import com.example.project.exception.ResponseMessage;
+import com.example.project.model.Role;
+import com.example.project.model.User;
+import com.example.project.dto.response.UserCreateResponse;
+import com.example.project.dto.response.UserResponse;
+import com.example.project.repository.IRoleRepository;
+import com.example.project.service.IUserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
+
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static java.net.HttpURLConnection.HTTP_OK;
+
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("api/users")
+public class UserController {
+    private final IUserService userService;
+    private  final IRoleRepository iRoleRepository;
+    // Get list user
+    @GetMapping("") // http://localhost:3000/api/users?page=1&limit=5
+    public ResponseEntity<ResponseMessage<Page<UserDTO>>> getUsers(@RequestParam(value = "keySearch", required = false) String keySearch, @RequestParam("page") int page, @RequestParam("limit") int limit) {
+        Pageable pageable = PageRequest.of(page, limit,Sort.by("createdAt").descending());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseMessage<Page<UserDTO>>(ErrorMessage.USER_GET_ALL_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE,
+                        userService.getAllUsers(keySearch, pageable)));
+    }
+
+    // create user
+    @PostMapping("")
+    public ResponseEntity<?> createUser(@RequestBody @Valid UserCreateRequestDTO request, BindingResult result) {
+        try {
+            if (result.hasErrors()) {
+                List<String> errMessage = result.getAllErrors()
+                        .stream()
+                        .map(fieldError -> fieldError.getDefaultMessage())
+                        .toList();
+                return ResponseEntity.badRequest().body(errMessage);
+            }
+            UserDTO newUser = userService.createUser(request);
+            var userModel = UserCreateResponse.builder()
+                    .firstName(newUser.getFirstName())
+                    .lastName(newUser.getLastName())
+                    .email(newUser.getEmail())
+                    .roleId(newUser.getRoleId())
+                    .address(newUser.getAddress())
+                    .phone(newUser.getPhone())
+                    .build();
+            return ResponseEntity.ok(userModel);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    // Get single user
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
+        try {
+            User user = userService.getUserByID(id);
+            return ResponseEntity.ok(UserResponse.mapUser(user));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
+    }
+    //Update user
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@Valid @PathVariable Long id, @Valid @RequestBody UserDTO request) {
+        UserDTO accountUpdated = userService.updateUser(id, request);
+        if (accountUpdated != null) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage(ErrorMessage.USER_UPDATE_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE,accountUpdated));
+        } else {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage(ErrorMessage.USER_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
+        }
+
+    }
+    // Delete User
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseMessage<UserDTO>> deleteUser(@PathVariable Long id) {
+        try {
+            userService.deleteUser(id);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage(ErrorMessage.USER_DELETE_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE));
+        }  catch (NumberFormatException e){
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage(ErrorMessage.USER_ID_INVALID, ErrorMessage.USER_BAD_REQUEST));
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage(ErrorMessage.USER_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
+        }
+    }
+
+    @GetMapping("/getRoles")
+    public ResponseEntity<ResponseMessage<List<Role>>> getAllRole() {
+        List<Role> listRole;
+        try {
+            listRole = iRoleRepository.findAll();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage(AppConstants.ROLES_GET_ALL_FAILED, HTTP_NOT_FOUND));
+        }
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseMessage(AppConstants.ROLES_GET_ALL_SUCCESS, HTTP_OK, listRole));
+    }
+}

@@ -1,4 +1,4 @@
-package com.example.project.payload.response;
+package com.example.project.dto.response;
 
 public class MessageResponse {
     private String message;

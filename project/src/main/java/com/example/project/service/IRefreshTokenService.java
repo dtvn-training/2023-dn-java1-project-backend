@@ -4,7 +4,7 @@ import com.example.project.model.RefreshToken;
 
 import java.util.Optional;
 
-public interface RefreshTokenService {
+public interface IRefreshTokenService {
     Optional<RefreshToken> findByToken(String token);
 
     RefreshToken generateRefreshToken(Long userId);
