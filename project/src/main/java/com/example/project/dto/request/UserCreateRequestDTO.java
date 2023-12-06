@@ -1,6 +1,7 @@
 package com.example.project.dto.request;
 
 import lombok.*;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
@@ -13,7 +14,9 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 @Builder
 public class UserCreateRequestDTO {
-    @NotBlank(message = "Email is required")
+    @NotBlank(message = messageSource.getMessage("USER_NOT_FOUND",
+            null,
+            LocaleContextHolder.getLocale()))
     @Pattern(regexp = EMAIL_REGEX, message = "Invalid email format")
     private  String email;
     @NotBlank(message = "First name is required")

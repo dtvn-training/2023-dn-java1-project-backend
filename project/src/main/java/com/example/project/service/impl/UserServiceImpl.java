@@ -1,6 +1,5 @@
 package com.example.project.service.impl;
 
-import com.example.project.constants.ErrorMessage;
 import com.example.project.dto.request.UserCreateRequestDTO;
 import com.example.project.dto.response.UserDTO;
 import com.example.project.exception.ErrorException;
@@ -27,7 +26,6 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.Optional;
 
-import static com.example.project.constants.ErrorMessage.USER_ID_INVALID;
 
 @Service
 @RequiredArgsConstructor

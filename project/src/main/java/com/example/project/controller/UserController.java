@@ -1,6 +1,5 @@
 package com.example.project.controller;
 
-import com.example.project.constants.ErrorMessage;
 import com.example.project.dto.request.UserCreateRequestDTO;
 import com.example.project.dto.response.UserDTO;
 import com.example.project.exception.ResponseMessage;
@@ -11,6 +10,8 @@ import com.example.project.dto.response.UserResponse;
 import com.example.project.repository.IRoleRepository;
 import com.example.project.service.IUserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,12 +33,15 @@ import static java.net.HttpURLConnection.HTTP_OK;
 public class UserController {
     private final IUserService userService;
     private  final IRoleRepository iRoleRepository;
+    private final MessageSource messageSource;
     // Get list user
     @GetMapping("") // http://localhost:3000/api/users?page=1&limit=5
     public ResponseEntity<ResponseMessage<Page<UserDTO>>> getUsers(@RequestParam(value = "keySearch", required = false) String keySearch, @RequestParam("page") int page, @RequestParam("limit") int limit) {
         Pageable pageable = PageRequest.of(page, limit,Sort.by("createdAt").descending());
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ResponseMessage<Page<UserDTO>>(ErrorMessage.USER_GET_ALL_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE,
+                .body(new ResponseMessage<Page<UserDTO>>( messageSource.getMessage("USER_GET_ALL_SUCCESS",
+                        null,
+                        LocaleContextHolder.getLocale()),
                         userService.getAllUsers(keySearch, pageable)));
     }
 
@@ -83,10 +87,16 @@ public class UserController {
         UserDTO accountUpdated = userService.updateUser(id, request);
         if (accountUpdated != null) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(ErrorMessage.USER_UPDATE_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE,accountUpdated));
+                    .body(new ResponseMessage(messageSource.getMessage("USER_UPDATE_SUCCESS",
+                            null,
+                            LocaleContextHolder.getLocale()),accountUpdated));
         } else {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(ErrorMessage.USER_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
+                    .body(new ResponseMessage(messageSource.getMessage("USER_NOT_FOUND",
+                            null,
+                            LocaleContextHolder.getLocale()), messageSource.getMessage("RESOURCE_NOT_FOUND_CODE",
+                            null,
+                            LocaleContextHolder.getLocale())));
         }
 
     }
@@ -96,14 +106,26 @@ public class UserController {
         try {
             userService.deleteUser(id);
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(ErrorMessage.USER_DELETE_SUCCESS, ErrorMessage.ACCOUNT_SUCCESS_CODE));
+                    .body(new ResponseMessage(messageSource.getMessage("USER_DELETE_SUCCESS",
+                            null,
+                            LocaleContextHolder.getLocale()), messageSource.getMessage("ACCOUNT_SUCCESS_CODE",
+                            null,
+                            LocaleContextHolder.getLocale())));
         }  catch (NumberFormatException e){
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(ErrorMessage.USER_ID_INVALID, ErrorMessage.USER_BAD_REQUEST));
+                    .body(new ResponseMessage(messageSource.getMessage("USER_ID_INVALID",
+                            null,
+                            LocaleContextHolder.getLocale()), messageSource.getMessage("USER_BAD_REQUEST",
+                            null,
+                            LocaleContextHolder.getLocale())));
         }
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(ErrorMessage.USER_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
+                    .body(new ResponseMessage(messageSource.getMessage("USER_NOT_FOUND",
+                            null,
+                            LocaleContextHolder.getLocale()), messageSource.getMessage("RESOURCE_NOT_FOUND_CODE",
+                            null,
+                            LocaleContextHolder.getLocale())));
         }
     }
 
@@ -114,9 +136,13 @@ public class UserController {
             listRole = iRoleRepository.findAll();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(AppConstants.ROLES_GET_ALL_FAILED, HTTP_NOT_FOUND));
+                    .body(new ResponseMessage(messageSource.getMessage("ROLES_GET_ALL_FAILED",
+                            null,
+                            LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
         }
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ResponseMessage(AppConstants.ROLES_GET_ALL_SUCCESS, HTTP_OK, listRole));
+                .body(new ResponseMessage(messageSource.getMessage("ROLES_GET_ALL_SUCCESS",
+                        null,
+                        LocaleContextHolder.getLocale()), listRole));
     }
 }
