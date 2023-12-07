@@ -27,7 +27,6 @@ public class UserResponse extends BaseResponse {
                         .address(user.getAddress())
                         .phone(user.getPhone())
                         .build();
-        userResponse.setCreatedAt(user.getCreatedAt());
         userResponse.setUpdatedAt(user.getUpdatedAt());
         return userResponse;
     }

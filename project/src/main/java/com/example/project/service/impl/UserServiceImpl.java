@@ -3,6 +3,7 @@ package com.example.project.service.impl;
 import com.example.project.dto.request.UserCreateRequestDTO;
 import com.example.project.dto.response.UserDTO;
 import com.example.project.exception.ErrorException;
+import com.example.project.exception.ResponseMessage;
 import com.example.project.model.Role;
 import com.example.project.model.User;
 import com.example.project.repository.IRoleRepository;
@@ -19,6 +20,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -134,20 +137,21 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserDTO updateUser(Long userID, UserDTO userDTO) {
         Optional<User> optionalOldUser = userRepository.findById(userID);
-        userDTO.getUpdatedAt();
         if(optionalOldUser.isPresent()){
             User oldUser  =  optionalOldUser.get();
-            oldUser.setFirstName(userDTO.getFirstName());
-            oldUser.setLastName(userDTO.getLastName());
-            oldUser.setAddress(userDTO.getAddress());
-            oldUser.setPhone(userDTO.getPhone());
-            Optional<Role> roleUpdate = roleRepository.findById(userDTO.getRoleId());
-            if(roleUpdate.isPresent()){
-                oldUser.setRole(roleUpdate.get());
-            }else{
-                throw new ErrorException(messageSource.getMessage("USER_UPDATE_SUCCESS",null, LocaleContextHolder.getLocale()),HTTP_OK);
-            }
-            return mapper.map(userRepository.save(oldUser),UserDTO.class);
+                oldUser.setFirstName(userDTO.getFirstName());
+                oldUser.setLastName(userDTO.getLastName());
+                oldUser.setAddress(userDTO.getAddress());
+                oldUser.setPhone(userDTO.getPhone());
+                oldUser.setUpdatedAt(LocalDateTime.now());
+                Optional<Role> roleUpdate = roleRepository.findById(userDTO.getRoleId());
+                if(roleUpdate.isPresent()){
+                    oldUser.setRole(roleUpdate.get());
+                }else{
+                    new ResponseMessage(messageSource.getMessage("USER_UPDATE_SUCCESS",null, LocaleContextHolder.getLocale()),HTTP_OK);
+                }
+                return mapper.map(userRepository.save(oldUser),UserDTO.class);
+
         }else {
             throw new ErrorException(messageSource.getMessage("USER_NOT_FOUND", null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND);
         }

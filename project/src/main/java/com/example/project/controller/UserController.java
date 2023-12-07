@@ -91,18 +91,23 @@ public class UserController {
     //Update user
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@Valid @PathVariable Long id, @Valid @RequestBody UserDTO request){
-        Optional<User> update = iUserRepository.findById(id);
-        UserDTO userUpdated = userService.updateUser(id, request);
-        System.out.println(update.get().getUpdatedAt());
-        System.out.println();
-        if (userUpdated != null) {
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage("USER_UPDATE_SUCCESS",
-                            null,
-                            LocaleContextHolder.getLocale()),HTTP_OK,userUpdated));
+        Optional<User> optionalOldUser = iUserRepository.findById(id);
+        if (request.getUpdatedAt().equals(optionalOldUser.get().getUpdatedAt()) ){
+            UserDTO userUpdated = userService.updateUser(id, request);
+            if (userUpdated != null) {
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ResponseMessage(messageSource.getMessage("USER_UPDATE_SUCCESS",
+                                null,
+                                LocaleContextHolder.getLocale()),HTTP_OK,userUpdated));
+            } else {
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ResponseMessage(messageSource.getMessage("USER_NOT_FOUND",
+                                null,
+                                LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
+            }
         } else {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage("USER_NOT_FOUND",
+                    .body(new ResponseMessage(messageSource.getMessage("user.update.fail",
                             null,
                             LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
         }
