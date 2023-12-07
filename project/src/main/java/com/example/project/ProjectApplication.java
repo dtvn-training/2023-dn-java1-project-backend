@@ -18,7 +18,6 @@ import java.util.Set;
 
 @SpringBootApplication
 @ComponentScan("com.example")
-@PropertySource("classpath:message.properties")
 public class ProjectApplication {
     public static void main(String[] args) {
         SpringApplication.run(ProjectApplication.class, args);

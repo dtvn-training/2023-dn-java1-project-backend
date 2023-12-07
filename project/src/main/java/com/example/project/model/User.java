@@ -71,6 +71,5 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-        deleteAt = LocalDateTime.now();
     }
 }

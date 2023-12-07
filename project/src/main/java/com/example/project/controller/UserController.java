@@ -23,6 +23,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,11 +40,11 @@ public class UserController {
     // Get list user
     @GetMapping("") // http://localhost:3000/api/users?page=1&limit=5
     public ResponseEntity<ResponseMessage<Page<UserDTO>>> getUsers(@RequestParam(value = "keySearch", required = false) String keySearch, @RequestParam("page") int page, @RequestParam("limit") int limit) {
-        Pageable pageable = PageRequest.of(page, limit,Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(page, limit,Sort.by("createdAt").ascending());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ResponseMessage<Page<UserDTO>>( messageSource.getMessage("USER_GET_ALL_SUCCESS",
                         null,
-                        LocaleContextHolder.getLocale()),
+                        LocaleContextHolder.getLocale()),HTTP_OK,
                         userService.getAllUsers(keySearch, pageable)));
     }
 
@@ -54,32 +55,28 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage(messageSource.getMessage("ERROR_EMAIL_ALREADY_EXISTS",
                             null,
-                            LocaleContextHolder.getLocale()), messageSource.getMessage("RESOURCE_NOT_FOUND_CODE",
-                            null,
-                            LocaleContextHolder.getLocale())));
+                            LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
         }
         UserDTO addedUser = userService.createUser(request);
         if (addedUser != null) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage(messageSource.getMessage("ACCOUNT_REGISTER_SUCCESS",
                             null,
-                            LocaleContextHolder.getLocale()), addedUser));
+                            LocaleContextHolder.getLocale()),HTTP_OK, addedUser));
         } else {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage(messageSource.getMessage("ACCOUNT_REGISTER_FAILED",
                             null,
-                            LocaleContextHolder.getLocale()), messageSource.getMessage("HTTP_INTERNAL_SERVER_ERROR",
-                            null,
-                            LocaleContextHolder.getLocale())));
+                            LocaleContextHolder.getLocale()), HTTP_SERVER_ERROR));
         }
     }
     // Get single user
     @GetMapping("/{id}")
     public ResponseEntity<?> getUser(@PathVariable Long id) {
         try {
-            Optional<User> accountDelete = iUserRepository.findById(id);
+            Optional<User> getUser = iUserRepository.findById(id);
             //Check if account has been deleted
-            if(accountDelete.get().isDeleteFlag())
+            if(getUser.get().isDeleteFlag())
                 return ResponseEntity.status(HttpStatus.OK)
                         .body(new ResponseMessage<>(messageSource.getMessage("USER_IS_DELETED",
                                 null,
@@ -93,28 +90,21 @@ public class UserController {
     }
     //Update user
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseMessage<UserDTO>> updateUser(@Valid @PathVariable Long id, @Valid @RequestBody UserDTO request) {
-        if(iUserRepository.existsByEmail(request.getEmail())){
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage("ERROR_EMAIL_ALREADY_EXISTS",
-                            null,
-                            LocaleContextHolder.getLocale()), messageSource.getMessage("RESOURCE_NOT_FOUND_CODE",
-                            null,
-                            LocaleContextHolder.getLocale())));
-        }
-        UserDTO accountUpdated = userService.updateUser(id, request);
-        if (accountUpdated != null) {
+    public ResponseEntity<?> updateUser(@Valid @PathVariable Long id, @Valid @RequestBody UserDTO request){
+        Optional<User> update = iUserRepository.findById(id);
+        UserDTO userUpdated = userService.updateUser(id, request);
+        System.out.println(update.get().getUpdatedAt());
+        System.out.println();
+        if (userUpdated != null) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage(messageSource.getMessage("USER_UPDATE_SUCCESS",
                             null,
-                            LocaleContextHolder.getLocale()),accountUpdated));
+                            LocaleContextHolder.getLocale()),HTTP_OK,userUpdated));
         } else {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage(messageSource.getMessage("USER_NOT_FOUND",
                             null,
-                            LocaleContextHolder.getLocale()), messageSource.getMessage("RESOURCE_NOT_FOUND_CODE",
-                            null,
-                            LocaleContextHolder.getLocale())));
+                            LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
         }
     }
     // Delete User
@@ -133,22 +123,20 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage(messageSource.getMessage("USER_DELETE_SUCCESS",
                             null,
-                            LocaleContextHolder.getLocale()), messageSource.getMessage("ACCOUNT_SUCCESS_CODE",
+                            LocaleContextHolder.getLocale()),HTTP_OK, messageSource.getMessage("ACCOUNT_SUCCESS_CODE",
                             null,
                             LocaleContextHolder.getLocale())));
         }  catch (NumberFormatException e){
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage(messageSource.getMessage("USER_ID_INVALID",
                             null,
-                            LocaleContextHolder.getLocale()), messageSource.getMessage("USER_BAD_REQUEST",
-                            null,
-                            LocaleContextHolder.getLocale())));
+                            LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
         }
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage(messageSource.getMessage("ACCOUNT_DELETE_FAILD",
                             null,
-                            LocaleContextHolder.getLocale()), messageSource.getMessage("ACCOUNT_DELETE_FAILD",
+                            LocaleContextHolder.getLocale()), HTTP_OK,messageSource.getMessage("ACCOUNT_DELETE_FAILD",
                             null,
                             LocaleContextHolder.getLocale())));
         }
@@ -163,14 +151,12 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage(messageSource.getMessage("ROLES_GET_ALL_FAILED",
                             null,
-                            LocaleContextHolder.getLocale()), messageSource.getMessage("RESOURCE_NOT_FOUND_COD",
-                            null,
-                            LocaleContextHolder.getLocale())));
+                            LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
         }
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ResponseMessage(messageSource.getMessage("ROLES_GET_ALL_SUCCESS",
                         null,
-                        LocaleContextHolder.getLocale()), listRole));
+                        LocaleContextHolder.getLocale()),HTTP_OK ,listRole ));
     }
 
 }

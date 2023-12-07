@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface IUserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
+
     @Query("SELECT a FROM User a WHERE a.deleteFlag = 0")
     Page<User> findAll(Pageable pageable);
 

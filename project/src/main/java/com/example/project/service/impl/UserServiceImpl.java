@@ -10,6 +10,7 @@ import com.example.project.repository.IUserRepository;
 import com.example.project.model.UserPrinciple;
 import com.example.project.service.IUserService;
 import com.example.project.service.JwtService;
+import com.example.project.utlis.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -24,7 +25,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.Optional;
+
+import static java.net.HttpURLConnection.*;
 
 
 @Service
@@ -38,6 +42,7 @@ public class UserServiceImpl implements IUserService {
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper mapper = new ModelMapper();
     private final MessageSource messageSource;
+    private final UserValidator accountValidator;
     @Override
     public Iterable<User> findAll() {
         return userRepository.findAll();
@@ -78,8 +83,9 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public UserDTO createUser(UserCreateRequestDTO userCreateDTO) {
+        accountValidator.validateRegisterRequest(userCreateDTO);
         Role role = roleRepository.findById(userCreateDTO.getRoleId())
-                .orElseThrow(() -> new ErrorException(messageSource.getMessage("ERROR_EMAIL_NOT_VALID", null, LocaleContextHolder.getLocale())));
+                .orElseThrow(() -> new ErrorException(messageSource.getMessage("ERROR_ROLE_NOT_FOUND", null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
         var newUser = User.builder()
                 .email(userCreateDTO.getEmail())
                 .firstName(userCreateDTO.getFirstName())
@@ -94,7 +100,7 @@ public class UserServiceImpl implements IUserService {
             userRepository.save(newUser);
         }
         catch (Exception e) {
-            throw new ErrorException(messageSource.getMessage("USER_ID_INVALID", null, LocaleContextHolder.getLocale()));
+            throw new ErrorException(messageSource.getMessage("USER_ID_INVALID", null, LocaleContextHolder.getLocale()), HTTP_INTERNAL_ERROR);
         }
         return UserDTO.builder()
                 .firstName(newUser.getFirstName())
@@ -110,7 +116,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public User getUserByID(Long userID) throws Exception {
         return userRepository.findById(userID)
-                .orElseThrow(() -> new ErrorException(messageSource.getMessage("USER_ID_INVALID", null, LocaleContextHolder.getLocale())));
+                .orElseThrow(() -> new ErrorException(messageSource.getMessage("USER_ID_INVALID", null, LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
     }
 
     @Override
@@ -128,23 +134,22 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserDTO updateUser(Long userID, UserDTO userDTO) {
         Optional<User> optionalOldUser = userRepository.findById(userID);
+        userDTO.getUpdatedAt();
         if(optionalOldUser.isPresent()){
             User oldUser  =  optionalOldUser.get();
-            oldUser.setEmail(userDTO.getEmail());
             oldUser.setFirstName(userDTO.getFirstName());
             oldUser.setLastName(userDTO.getLastName());
             oldUser.setAddress(userDTO.getAddress());
             oldUser.setPhone(userDTO.getPhone());
-            //find role id by role name
             Optional<Role> roleUpdate = roleRepository.findById(userDTO.getRoleId());
             if(roleUpdate.isPresent()){
                 oldUser.setRole(roleUpdate.get());
             }else{
-                throw new ErrorException(messageSource.getMessage("USER_UPDATE_SUCCESS",null, LocaleContextHolder.getLocale()));
+                throw new ErrorException(messageSource.getMessage("USER_UPDATE_SUCCESS",null, LocaleContextHolder.getLocale()),HTTP_OK);
             }
             return mapper.map(userRepository.save(oldUser),UserDTO.class);
         }else {
-            throw new ErrorException(messageSource.getMessage("USER_NOT_FOUND", null, LocaleContextHolder.getLocale()));
+            throw new ErrorException(messageSource.getMessage("USER_NOT_FOUND", null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND);
         }
 
     }
@@ -154,7 +159,7 @@ public class UserServiceImpl implements IUserService {
     public void deleteUser(Long id) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(
-                        () -> new ErrorException(messageSource.getMessage("USER_NOT_FOUND", null, LocaleContextHolder.getLocale())));
+                        () -> new ErrorException(messageSource.getMessage("USER_NOT_FOUND", null, LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
         existingUser.setDeleteFlag(true);
         userRepository.save(existingUser);
     }

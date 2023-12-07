@@ -14,8 +14,9 @@ public class ResponseMessage<T> {
         this.message = message;
         Code = code;
     }
-    public ResponseMessage(String message, T data) {
+    public ResponseMessage(String message, Integer code, T data) {
         this.message = message;
+        Code = code;
         this.data = data;
     }
 }
