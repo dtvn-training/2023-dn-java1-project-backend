@@ -9,6 +9,7 @@ import com.example.project.dto.response.UserCreateResponse;
 import com.example.project.dto.response.UserResponse;
 import com.example.project.repository.IRoleRepository;
 import com.example.project.repository.IUserRepository;
+import com.example.project.service.ErrorService;
 import com.example.project.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -37,14 +38,13 @@ public class UserController {
     private  final IRoleRepository iRoleRepository;
     private final IUserRepository iUserRepository;
     private final MessageSource messageSource;
+    private final ErrorService errorService;
     // Get list user
     @GetMapping("") // http://localhost:3000/api/users?page=1&limit=5
     public ResponseEntity<ResponseMessage<Page<UserDTO>>> getUsers(@RequestParam(value = "keySearch", required = false) String keySearch, @RequestParam("page") int page, @RequestParam("limit") int limit) {
         Pageable pageable = PageRequest.of(page, limit,Sort.by("createdAt").ascending());
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ResponseMessage<Page<UserDTO>>( messageSource.getMessage("USER_GET_ALL_SUCCESS",
-                        null,
-                        LocaleContextHolder.getLocale()),HTTP_OK,
+                .body(new ResponseMessage<Page<UserDTO>>( errorService.processUserGetAllSuccess(),HTTP_OK,
                         userService.getAllUsers(keySearch, pageable)));
     }
 
@@ -53,21 +53,15 @@ public class UserController {
     public ResponseEntity<ResponseMessage<UserDTO>>  createUser(@RequestBody UserCreateRequestDTO request) throws Exception {
         if(iUserRepository.existsByEmail(request.getEmail())){
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage("ERROR_EMAIL_ALREADY_EXISTS",
-                            null,
-                            LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
+                    .body(new ResponseMessage(errorService.processErrorEmailAlreadyExist(), HTTP_NOT_FOUND));
         }
         UserDTO addedUser = userService.createUser(request);
         if (addedUser != null) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage("ACCOUNT_REGISTER_SUCCESS",
-                            null,
-                            LocaleContextHolder.getLocale()),HTTP_OK, addedUser));
+                    .body(new ResponseMessage(errorService.processUserRegisterSuccess(),HTTP_OK, addedUser));
         } else {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage("ACCOUNT_REGISTER_FAILED",
-                            null,
-                            LocaleContextHolder.getLocale()), HTTP_SERVER_ERROR));
+                    .body(new ResponseMessage(errorService.processUserRegisterFail(), HTTP_SERVER_ERROR));
         }
     }
     // Get single user
@@ -78,9 +72,7 @@ public class UserController {
             //Check if account has been deleted
             if(getUser.get().isDeleteFlag())
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage<>(messageSource.getMessage("USER_IS_DELETED",
-                                null,
-                                LocaleContextHolder.getLocale()) , HTTP_OK));
+                        .body(new ResponseMessage<>(errorService.processUserIsDelete() , HTTP_OK));
             User user = userService.getUserByID(id);
             return ResponseEntity.ok(UserResponse.mapUser(user));
         } catch (Exception e) {
@@ -96,20 +88,14 @@ public class UserController {
             UserDTO userUpdated = userService.updateUser(id, request);
             if (userUpdated != null) {
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage(messageSource.getMessage("USER_UPDATE_SUCCESS",
-                                null,
-                                LocaleContextHolder.getLocale()),HTTP_OK,userUpdated));
+                        .body(new ResponseMessage(errorService.processUpdateSuccess(),HTTP_OK,userUpdated));
             } else {
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage(messageSource.getMessage("USER_NOT_FOUND",
-                                null,
-                                LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
+                        .body(new ResponseMessage(errorService.processNotFound(), HTTP_NOT_FOUND));
             }
         } else {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage("user.update.fail",
-                            null,
-                            LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
+                    .body(new ResponseMessage(errorService.processUpdateFail(), HTTP_NOT_FOUND));
         }
     }
     // Delete User
@@ -120,30 +106,18 @@ public class UserController {
             //Check if account has been deleted
             if(accountDelete.get().isDeleteFlag())
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage<>(messageSource.getMessage("USER_IS_DELETED",
-                                null,
-                                LocaleContextHolder.getLocale()) , HTTP_OK));
+                        .body(new ResponseMessage<>(errorService.processUserIsDelete() , HTTP_OK));
             //delete account
             userService.deleteUser(id);
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage("USER_DELETE_SUCCESS",
-                            null,
-                            LocaleContextHolder.getLocale()),HTTP_OK, messageSource.getMessage("ACCOUNT_SUCCESS_CODE",
-                            null,
-                            LocaleContextHolder.getLocale())));
+                    .body(new ResponseMessage(errorService.processDeleteSuccess(),HTTP_OK));
         }  catch (NumberFormatException e){
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage("USER_ID_INVALID",
-                            null,
-                            LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
+                    .body(new ResponseMessage(errorService.processIdInvalid(), HTTP_BAD_REQUEST));
         }
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage("ACCOUNT_DELETE_FAILD",
-                            null,
-                            LocaleContextHolder.getLocale()), HTTP_OK,messageSource.getMessage("ACCOUNT_DELETE_FAILD",
-                            null,
-                            LocaleContextHolder.getLocale())));
+                    .body(new ResponseMessage(errorService.processUserDeleteFail(), HTTP_BAD_REQUEST));
         }
     }
 
@@ -154,14 +128,10 @@ public class UserController {
             listRole = iRoleRepository.findAll();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage("ROLES_GET_ALL_FAILED",
-                            null,
-                            LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
+                    .body(new ResponseMessage(errorService.processRoleGetAllFail(),HTTP_NOT_FOUND));
         }
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ResponseMessage(messageSource.getMessage("ROLES_GET_ALL_SUCCESS",
-                        null,
-                        LocaleContextHolder.getLocale()),HTTP_OK ,listRole ));
+                .body(new ResponseMessage(errorService.processRoleGetAllSuccess(),HTTP_OK ,listRole ));
     }
 
 }

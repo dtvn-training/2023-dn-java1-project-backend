@@ -106,6 +106,7 @@ public class UserServiceImpl implements IUserService {
             throw new ErrorException(messageSource.getMessage("USER_ID_INVALID", null, LocaleContextHolder.getLocale()), HTTP_INTERNAL_ERROR);
         }
         return UserDTO.builder()
+                .id(newUser.getId())
                 .firstName(newUser.getFirstName())
                 .lastName(newUser.getLastName())
                 .email(newUser.getEmail())
