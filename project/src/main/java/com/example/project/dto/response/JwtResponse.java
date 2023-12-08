@@ -1,4 +1,4 @@
-package com.example.project.payload.response;
+package com.example.project.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
@@ -14,7 +14,7 @@ import java.util.Collection;
 @Builder
 public class JwtResponse {
     private Long id;
-    private String token;
+    private String accessToken;
     private String type;
     private String email;
     private Collection<? extends GrantedAuthority> roles;

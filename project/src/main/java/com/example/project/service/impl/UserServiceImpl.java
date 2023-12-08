@@ -1,29 +1,38 @@
 package com.example.project.service.impl;
 
-import com.example.project.constants.ErrorMessage;
-import com.example.project.dto.UserCreateDTO;
-import com.example.project.dto.UserDTO;
+import com.example.project.dto.request.UserCreateRequestDTO;
+import com.example.project.dto.response.UserDTO;
 import com.example.project.exception.ErrorException;
+import com.example.project.exception.ResponseMessage;
 import com.example.project.model.Role;
 import com.example.project.model.User;
 import com.example.project.repository.IRoleRepository;
 import com.example.project.repository.IUserRepository;
 import com.example.project.model.UserPrinciple;
 import com.example.project.service.IUserService;
+import com.example.project.service.JwtService;
+import com.example.project.utlis.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static com.example.project.constants.ErrorConstants.ERROR_ROLE_NOT_FOUND;
-import static com.example.project.constants.ErrorMessage.USER_ID_INVALID;
+import static java.net.HttpURLConnection.*;
+
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +44,8 @@ public class UserServiceImpl implements IUserService {
 
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper mapper = new ModelMapper();
+    private final MessageSource messageSource;
+    private final UserValidator accountValidator;
     @Override
     public Iterable<User> findAll() {
         return userRepository.findAll();
@@ -44,7 +55,7 @@ public class UserServiceImpl implements IUserService {
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
     }
-
+    private static final Logger logger = LoggerFactory.getLogger(JwtService.class.getName());
 
 
     @Override
@@ -74,21 +85,28 @@ public class UserServiceImpl implements IUserService {
 
 
     @Override
-    public UserDTO createUser(UserCreateDTO userCreateDTO) {
+    public UserDTO createUser(UserCreateRequestDTO userCreateDTO) {
+        accountValidator.validateRegisterRequest(userCreateDTO);
         Role role = roleRepository.findById(userCreateDTO.getRoleId())
-                .orElseThrow(() -> new ErrorException(ERROR_ROLE_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
-        System.out.println(role);
-        User newUser = User.builder()
+                .orElseThrow(() -> new ErrorException(messageSource.getMessage("ERROR_ROLE_NOT_FOUND", null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
+        var newUser = User.builder()
                 .email(userCreateDTO.getEmail())
                 .firstName(userCreateDTO.getFirstName())
                 .lastName(userCreateDTO.getLastName())
-                .password(passwordEncoder.encode(userCreateDTO.getPassword()))
                 .address(userCreateDTO.getAddress())
+                .password(passwordEncoder.encode(userCreateDTO.getPassword()))
                 .phone(userCreateDTO.getPhone())
                 .role(role)
                 .build();
-        userRepository.save(newUser);
+
+        try {
+            userRepository.save(newUser);
+        }
+        catch (Exception e) {
+            throw new ErrorException(messageSource.getMessage("USER_ID_INVALID", null, LocaleContextHolder.getLocale()), HTTP_INTERNAL_ERROR);
+        }
         return UserDTO.builder()
+                .id(newUser.getId())
                 .firstName(newUser.getFirstName())
                 .lastName(newUser.getLastName())
                 .email(newUser.getEmail())
@@ -96,12 +114,13 @@ public class UserServiceImpl implements IUserService {
                 .address(newUser.getAddress())
                 .phone(newUser.getPhone())
                 .build();
+
     }
 
     @Override
     public User getUserByID(Long userID) throws Exception {
         return userRepository.findById(userID)
-                .orElseThrow(() -> new ErrorException(USER_ID_INVALID, ErrorMessage.RESOURCE_NOT_FOUND_CODE));
+                .orElseThrow(() -> new ErrorException(messageSource.getMessage("USER_ID_INVALID", null, LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
     }
 
     @Override
@@ -121,21 +140,21 @@ public class UserServiceImpl implements IUserService {
         Optional<User> optionalOldUser = userRepository.findById(userID);
         if(optionalOldUser.isPresent()){
             User oldUser  =  optionalOldUser.get();
-            oldUser.setEmail(userDTO.getEmail());
-            oldUser.setFirstName(userDTO.getFirstName());
-            oldUser.setLastName(userDTO.getLastName());
-            oldUser.setAddress(userDTO.getAddress());
-            oldUser.setPhone(userDTO.getPhone());
-            //find role id by role name
-            Optional<Role> roleUpdate = roleRepository.findById(userDTO.getRoleId());
-            if(roleUpdate.isPresent()){
-                oldUser.setRole(roleUpdate.get());
-            }else{
-                throw new ErrorException(ERROR_ROLE_NOT_FOUND, ErrorMessage.RESOURCE_NOT_FOUND_CODE);
-            }
-            return mapper.map(userRepository.save(oldUser),UserDTO.class);
+                oldUser.setFirstName(userDTO.getFirstName());
+                oldUser.setLastName(userDTO.getLastName());
+                oldUser.setAddress(userDTO.getAddress());
+                oldUser.setPhone(userDTO.getPhone());
+                oldUser.setUpdatedAt(LocalDateTime.now());
+                Optional<Role> roleUpdate = roleRepository.findById(userDTO.getRoleId());
+                if(roleUpdate.isPresent()){
+                    oldUser.setRole(roleUpdate.get());
+                }else{
+                    new ResponseMessage(messageSource.getMessage("USER_UPDATE_SUCCESS",null, LocaleContextHolder.getLocale()),HTTP_OK);
+                }
+                return mapper.map(userRepository.save(oldUser),UserDTO.class);
+
         }else {
-            throw new ErrorException(ErrorMessage.USER_NOT_FOUND,  ErrorMessage.RESOURCE_NOT_FOUND_CODE);
+            throw new ErrorException(messageSource.getMessage("USER_NOT_FOUND", null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND);
         }
 
     }
@@ -145,7 +164,7 @@ public class UserServiceImpl implements IUserService {
     public void deleteUser(Long id) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(
-                        () -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
+                        () -> new ErrorException(messageSource.getMessage("USER_NOT_FOUND", null, LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
         existingUser.setDeleteFlag(true);
         userRepository.save(existingUser);
     }

@@ -1,4 +1,4 @@
-package com.example.project.payload.request;
+package com.example.project.dto.request;
 
 import lombok.Data;
 import lombok.Getter;

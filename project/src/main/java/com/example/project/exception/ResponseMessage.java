@@ -19,5 +19,6 @@ public class ResponseMessage<T> {
         Code = code;
         this.data = data;
     }
+
 }
 

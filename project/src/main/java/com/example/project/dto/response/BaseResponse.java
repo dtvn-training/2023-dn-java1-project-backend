@@ -1,4 +1,4 @@
-package com.example.project.payload.response;
+package com.example.project.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -13,9 +13,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @MappedSuperclass
 public class BaseResponse {
-
-    @JsonProperty("created_at")
-    private LocalDateTime createdAt;
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
 
