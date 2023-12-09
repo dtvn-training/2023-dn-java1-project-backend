@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 public class Campaign {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_campaign")
     private Long id;
     @Column(name = "name", length = 150)
     private String name;
@@ -40,9 +41,10 @@ public class Campaign {
     @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
 
-    @OneToOne
-    @Column(name = "user_update")
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
     private User user_update;
+    
     @Column(name = "delete_flag", nullable = false)
     private boolean deleteFlag;
 
