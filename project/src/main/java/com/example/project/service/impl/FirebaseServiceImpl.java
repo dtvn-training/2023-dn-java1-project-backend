@@ -16,7 +16,10 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.example.project.constants.Constants.*;
+
 public class FirebaseServiceImpl implements IFirebaseService {
+
     @Override
     public String uploadFile(MultipartFile multipartFile) throws IOException {
         String objectName = generateFileName(multipartFile);

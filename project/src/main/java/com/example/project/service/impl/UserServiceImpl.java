@@ -20,8 +20,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -86,7 +84,7 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public UserDTO createUser(UserCreateRequestDTO userCreateDTO) {
-        accountValidator.validateRegisterRequest(userCreateDTO);
+        accountValidator.validateCreateRequest(userCreateDTO);
         Role role = roleRepository.findById(userCreateDTO.getRoleId())
                 .orElseThrow(() -> new ErrorException(messageSource.getMessage("ERROR_ROLE_NOT_FOUND", null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
         var newUser = User.builder()
@@ -168,7 +166,4 @@ public class UserServiceImpl implements IUserService {
         existingUser.setDeleteFlag(true);
         userRepository.save(existingUser);
     }
-
-
-
 }

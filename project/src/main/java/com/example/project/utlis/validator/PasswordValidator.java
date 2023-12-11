@@ -1,9 +1,7 @@
 package com.example.project.utlis.validator;
 
-import com.example.project.service.ErrorService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +11,6 @@ import static com.example.project.constants.FieldValueLengthConstants.MIN_PASSWO
 
 @RequiredArgsConstructor
 public class PasswordValidator {
-    private final ErrorService errorService;
 
     public static PasswordValidationResult validatePassword(String password) {
         PasswordValidationResult result = new PasswordValidationResult();
