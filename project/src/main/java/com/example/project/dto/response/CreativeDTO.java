@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreativeDTO {
-    private String name;
+    private String title;
     private String description;
+    private String imageUrl;
     private String finalUrl;
 }

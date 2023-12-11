@@ -3,6 +3,8 @@ package com.example.project.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -19,27 +21,30 @@ public class Creatives {
     @Column(name = "creative_id")
     private Integer creativeId;
 
-
-    @ManyToOne
-    @JoinColumn(name = "id_campaign")
-    private Campaign id_campaign;
-
-    @Column(name = "name", length = 100)
-    private String name;
-
+    @Column(name = "title")
+    private String title;
 
     @Column(name = "description")
     private String description;
 
+    @Column(name = "image_url")
+    private String imageUrl;
 
-    @Column(name = "fianl_url")
-    private String final_url;
+    @Column(name = "final_url")
+    private String finalUrl;
+
+    @ManyToOne
+    @JoinColumn(name = "id_campaign")
+    private Campaign campaignId;
+
+    @CreationTimestamp
     @Column(name = "create_at")
-    private LocalDateTime createAt;
+    private Timestamp createAt;
 
+    @UpdateTimestamp
     @Column(name = "update_at")
-    private LocalDateTime updateAt;
+    private Timestamp updateAt;
 
-    @Column(name = "delete_flag")
+    @Column(name = "delete_flag", nullable = false, columnDefinition = "boolean default false")
     private Boolean deleteFlag;
 }

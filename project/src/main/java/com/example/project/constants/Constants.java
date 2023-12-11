@@ -60,4 +60,6 @@ public class Constants {
     public static final String FIREBASE_BUCKET = "firebase.bucket";
     public static final String FIREBASE_PROJECT_ID ="firebase.id";
 
+    public static final String BEARER_PREFIX = "bearer.prefix ";
+
 }

@@ -11,12 +11,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 @Repository
-public interface ICampaignRepository extends JpaRepository<User, Long>  {
+public interface ICampaignRepository extends JpaRepository<Campaign, Integer>  {
     @Query("SELECT c FROM Campaign c WHERE c.deleteFlag = false " +
             "AND LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))")
     Page<Campaign> findByName(@Param("name") String name, Pageable pageable);
     @Query("SELECT c FROM Campaign c WHERE c.deleteFlag = false AND c.id = :id")
-    Optional<Campaign> findByIdAndDeleteFlagIsFalse(@Param("id") Integer id);
+    Optional<Campaign> findByIdAndDeleteFlagIsFalse(@Param("id") Long id);
     @Query("Select a From Campaign a Where a.deleteFlag = false")
     Page<Campaign> getAllCampaign(Pageable pageable);
 

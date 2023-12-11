@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Builder
-@Table(name = "campaign")
+@Table(name = "campaigns")
 public class Campaign {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,26 +23,20 @@ public class Campaign {
     @Column(name = "status")
     private Boolean status;
 
-    @Column(name = "used_mount")
-    private Long usedMount;
-
-    @Column(name = "usage_mount")
-    private Double usageRate;
-
     @Column(name = "budget")
     private Double budget;
 
-    @Column(name = "bid_mount")
+    @Column(name = "bid_amount")
     private Double bidAmount;
 
-    @Column(name = "start_date", nullable = false, updatable = false)
+    @Column(name = "start_date")
     private LocalDateTime startDate;
 
-    @Column(name = "end_date", nullable = false)
+    @Column(name = "end_date")
     private LocalDateTime endDate;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "id", nullable = false)
     private User user_update;
 
     @Column(name = "delete_flag", nullable = false)
@@ -56,4 +50,10 @@ public class Campaign {
 
     @Column(name = "updated_at", nullable = true)
     private LocalDateTime updatedAt;
+
+    @Column(name = "usage_rate", columnDefinition = "FLOAT DEFAULT 0.0")
+    private Double usageRate;
+
+    @Column(name = "used_amount", columnDefinition = "INT DEFAULT 0")
+    private Double usedAmount;
 }
