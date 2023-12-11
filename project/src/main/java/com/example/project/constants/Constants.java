@@ -38,4 +38,24 @@ public class Constants {
 
     public static final String USER_UPDATE_FAIL ="user.update.fail";
 
+    public static final String CAMPAIGN_GET_SUCCESS = "campaign.get.success";
+
+    public static final String CAMPAIGN_CREATE_FAILED = "campaign.create.failed";
+    public static final String CAMPAIGN_CREATE_SUCCESS = "campaign.create.successs";
+    public static final String CAMPAIGN_NOT_FOUND = "campaign.not.found";
+    public static final String CAMPAIGN_DELETE_SUCCESS= "campaign.delete.success";
+    public static final String CAMPAIGN_ID_INVALID= "campaign.id.invalid";
+    public static final String CAMPAIGN_IS_DELETED = "campaign.id.delete";
+    public static final String CAMPAIGN_ALREADY_EXISTS = "campaign.already.exits";
+    public static final String CAMPAIGN_UPDATE_SUCCESS = "campaign.update.success";
+    public static final String CAMPAIGN_UPDATE_FAILED = "campaign.update.failed";
+    public static final String CREATIVES_ALREADY_EXISTS = "creativies.already.exists";
+    public static final String CREATIVES_NOT_FOUND = "creativies.not.found";
+    public static final String STARTDATE_IS_AFTER_ENDDATE = "start.date.is.after.enddate";
+
+    //Firebase Constants
+    public static final String FIREBASE_SDK_JSON ="firebase.sdk.json";
+    public static final String FIREBASE_BUCKET = "firebase.bucket";
+    public static final String FIREBASE_PROJECT_ID ="firebase.id";
+
 }
