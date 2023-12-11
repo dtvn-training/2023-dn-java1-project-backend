@@ -44,7 +44,7 @@ public class Campaign {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user_update;
-    
+
     @Column(name = "delete_flag", nullable = false)
     private boolean deleteFlag;
 
