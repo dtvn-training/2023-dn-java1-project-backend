@@ -41,5 +41,5 @@ public class Creatives {
     private LocalDateTime updateAt;
 
     @Column(name = "delete_flag")
-    private LocalDateTime deleteFlag;
+    private Boolean deleteFlag;
 }

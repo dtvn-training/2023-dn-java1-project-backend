@@ -18,6 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
+
+import static com.example.project.constants.Constants.CREATIVES_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 public class CampaignServiceImpl implements ICampaignService {
@@ -46,7 +49,7 @@ public class CampaignServiceImpl implements ICampaignService {
         if(creatives.isPresent())
             creatives.get().setDeleteFlag(true);
         else {
-            throw new RuntimeException(AppConstants.CREATIVES_NOT_FOUND);
+            throw new RuntimeException(CREATIVES_NOT_FOUND);
         }
         campaign.get().setDeleteFlag(true);
         iCampaignRepository.save(campaign.get());
@@ -68,7 +71,7 @@ public class CampaignServiceImpl implements ICampaignService {
                 oldCampaign.get().setEndDate(campaignDTO.getEndDate());
 
                 //update creative
-                oldCreate.get().setTitle(creativeDTO.getTitle());
+                oldCreate.get().setName(creativeDTO.getTitle());
                 oldCreate.get().setDescription(creativeDTO.getDescription());
                 //check if img is change
                 if(!file.isEmpty()){

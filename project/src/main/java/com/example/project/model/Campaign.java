@@ -21,19 +21,19 @@ public class Campaign {
     private String name;
 
     @Column(name = "status")
-    private Integer status;
+    private Boolean status;
 
     @Column(name = "used_mount")
-    private Long used_mount;
+    private Long usedMount;
 
     @Column(name = "usage_mount")
-    private Double usage_rate;
+    private Double usageRate;
 
     @Column(name = "budget")
     private Double budget;
 
     @Column(name = "bid_mount")
-    private Double bid_amount;
+    private Double bidAmount;
 
     @Column(name = "start_date", nullable = false, updatable = false)
     private LocalDateTime startDate;
