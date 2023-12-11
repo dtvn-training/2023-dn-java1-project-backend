@@ -166,7 +166,4 @@ public class UserServiceImpl implements IUserService {
         existingUser.setDeleteFlag(true);
         userRepository.save(existingUser);
     }
-
-
-
 }
