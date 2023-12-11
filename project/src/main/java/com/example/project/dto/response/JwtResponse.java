@@ -1,10 +1,12 @@
-package com.example.project.model;
+package com.example.project.dto.response;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
-import java.util.Date;
 
 @Data
 @Getter
@@ -12,7 +14,7 @@ import java.util.Date;
 @Builder
 public class JwtResponse {
     private Long id;
-    private String token;
+    private String accessToken;
     private String type;
     private String email;
     private Collection<? extends GrantedAuthority> roles;
