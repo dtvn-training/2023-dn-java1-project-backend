@@ -10,10 +10,6 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 @Configuration
 public class MessageSourceConfig {
 
-//    @Bean
-//    public Constants constants() {
-//        return new Constants();
-//    }
     @Bean
     public MessageSource messageSource() {
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
