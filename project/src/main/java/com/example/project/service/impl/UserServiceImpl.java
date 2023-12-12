@@ -29,6 +29,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import static com.example.project.constants.Constants.*;
 import static java.net.HttpURLConnection.*;
 
 
@@ -86,7 +87,7 @@ public class UserServiceImpl implements IUserService {
     public UserDTO createUser(UserCreateRequestDTO userCreateDTO) {
         accountValidator.validateCreateRequest(userCreateDTO);
         Role role = roleRepository.findById(userCreateDTO.getRoleId())
-                .orElseThrow(() -> new ErrorException(messageSource.getMessage("ERROR_ROLE_NOT_FOUND", null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException(messageSource.getMessage(ERROR_ROLE_NOT_FOUND, null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
         var newUser = User.builder()
                 .email(userCreateDTO.getEmail())
                 .firstName(userCreateDTO.getFirstName())
@@ -101,7 +102,7 @@ public class UserServiceImpl implements IUserService {
             userRepository.save(newUser);
         }
         catch (Exception e) {
-            throw new ErrorException(messageSource.getMessage("USER_ID_INVALID", null, LocaleContextHolder.getLocale()), HTTP_INTERNAL_ERROR);
+            throw new ErrorException(messageSource.getMessage(USER_ID_INVALID, null, LocaleContextHolder.getLocale()), HTTP_INTERNAL_ERROR);
         }
         return UserDTO.builder()
                 .id(newUser.getId())
@@ -118,7 +119,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public User getUserByID(Long userID) throws Exception {
         return userRepository.findById(userID)
-                .orElseThrow(() -> new ErrorException(messageSource.getMessage("USER_ID_INVALID", null, LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException(messageSource.getMessage(USER_ID_INVALID, null, LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
     }
 
     @Override
@@ -147,12 +148,12 @@ public class UserServiceImpl implements IUserService {
                 if(roleUpdate.isPresent()){
                     oldUser.setRole(roleUpdate.get());
                 }else{
-                    new ResponseMessage(messageSource.getMessage("USER_UPDATE_SUCCESS",null, LocaleContextHolder.getLocale()),HTTP_OK);
+                    new ResponseMessage(messageSource.getMessage(USER_UPDATE_SUCCESS,null, LocaleContextHolder.getLocale()),HTTP_OK);
                 }
                 return mapper.map(userRepository.save(oldUser),UserDTO.class);
 
         }else {
-            throw new ErrorException(messageSource.getMessage("USER_NOT_FOUND", null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND);
+            throw new ErrorException(messageSource.getMessage(USER_NOT_FOUND, null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND);
         }
 
     }
@@ -162,7 +163,7 @@ public class UserServiceImpl implements IUserService {
     public void deleteUser(Long id) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(
-                        () -> new ErrorException(messageSource.getMessage("USER_NOT_FOUND", null, LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
+                        () -> new ErrorException(messageSource.getMessage(USER_NOT_FOUND, null, LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
         existingUser.setDeleteFlag(true);
         userRepository.save(existingUser);
     }

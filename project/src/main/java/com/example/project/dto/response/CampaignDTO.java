@@ -15,7 +15,7 @@ public class CampaignDTO {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Double budget;
-    private Long usedAmount;
+    private Double usedAmount;
     private Double usageRate;
     private Boolean status;
     private Double bidAmount;

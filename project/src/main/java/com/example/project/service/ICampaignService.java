@@ -14,5 +14,6 @@ public interface ICampaignService {
     public CampaignAndCreativesDTO updateCampaign(Long campaginId, CampaignAndCreativesDTO campaignAndCreativesDTO, MultipartFile file);
     public CampaignAndCreativesDTO createCampaign(CampaignAndCreativesDTO campaignAndCreativesDTO, User user);
     public boolean isInteger(String number);
-    public Campaign maptoEntity(CampaignDTO campaignDTO);
+
+    Campaign getCampaignByID(Long id) throws Exception;
 }

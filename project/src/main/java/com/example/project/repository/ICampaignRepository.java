@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 @Repository
-public interface ICampaignRepository extends JpaRepository<Campaign, Integer>  {
+public interface ICampaignRepository extends JpaRepository<Campaign, Long>  {
     @Query("SELECT c FROM Campaign c WHERE c.deleteFlag = false " +
             "AND LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))")
     Page<Campaign> findByName(@Param("name") String name, Pageable pageable);

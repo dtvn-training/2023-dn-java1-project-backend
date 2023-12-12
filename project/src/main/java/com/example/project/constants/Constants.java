@@ -40,6 +40,7 @@ public class Constants {
     public static final String ROLES_GET_ALL_FAILED = "roles.get.all.failed";
     public static final String ROLES_GET_ALL_SUCCESS = "roles.get.all.success";
 
+    public  static final String ERROR_ROLE_NOT_FOUND = "role.not.found";
     public static final String CAMPAIGN_GET_SUCCESS = "campaign.get.success";
 
     public static final String CAMPAIGN_CREATE_FAILED = "campaign.create.failed";

@@ -25,6 +25,7 @@ import java.util.Optional;
 
 import static com.example.project.constants.Constants.*;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +47,11 @@ public class CampaignServiceImpl implements ICampaignService {
             Page<Campaign> allCampaign = iCampaignRepository.findByName(name,pageable);
             return allCampaign.map(campaign -> mapper.map(campaign, CampaignDTO.class ));
         }
+    }
+    @Override
+    public Campaign getCampaignByID(Long userID) throws Exception {
+        return iCampaignRepository.findById(userID)
+                .orElseThrow(() -> new ErrorException(messageSource.getMessage(CAMPAIGN_ID_INVALID, null, LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
     }
     @Override
     public void deleteCampaign(Long campaignId) {
@@ -133,11 +139,6 @@ public class CampaignServiceImpl implements ICampaignService {
         } catch (NumberFormatException e) {
             return false;
         }
-    }
-
-    @Override
-    public Campaign maptoEntity(CampaignDTO campaignDTO) {
-        return null;
     }
 
 }

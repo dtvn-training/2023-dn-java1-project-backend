@@ -1,8 +1,6 @@
 package com.example.project.controller;
 
-import com.example.project.dto.response.CampaignAndCreativesDTO;
-import com.example.project.dto.response.CampaignDTO;
-import com.example.project.dto.response.CreativeDTO;
+import com.example.project.dto.response.*;
 import com.example.project.exception.ResponseMessage;
 import com.example.project.model.Campaign;
 import com.example.project.model.Creatives;
@@ -27,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,13 +48,39 @@ public class CampaignController {
     private final JwtService jwtService;
     private final IFirebaseService firebaseService;
     private final MessageSource messageSource;
-    @GetMapping("/")
-    public ResponseEntity<ResponseMessage<Page<CampaignDTO>>> getCampaigns(@RequestParam(value = "keySearch", required = false) String keySearch, @RequestParam("page") int page, @RequestParam("limit") int limit){
+    @GetMapping("")
+    public ResponseEntity<ResponseMessage<Page<CampaignDTO>>> getCampaigns(@RequestParam(value = "keySearch", required = false) String keySearch,
+                                                                           @RequestParam("page") int page,
+                                                                           @RequestParam("limit") int limit,
+    @RequestParam(value = "startDate",required = false) String startDate,
+                                                                           @RequestParam(value = "endDate", required = false) String endDate){
+        if(startDate == null || startDate.isEmpty()){
+            startDate = "";
+        } else if (endDate == null || endDate.isEmpty()) {
+            endDate = "";
+        }
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
         Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").ascending());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ResponseMessage<>(messageSource.getMessage(CAMPAIGN_GET_SUCCESS, null, LocaleContextHolder.getLocale()), HTTP_OK,campaignService.getCampaign(keySearch,pageable)));
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getCampaign(@PathVariable Long id) {
+        try {
+            Optional<Campaign> getCampaign = campaignRepository.findById(id);
+            //Check if account has been deleted
+            if(getCampaign.get().isDeleteFlag())
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ResponseMessage<>(messageSource.getMessage(CAMPAIGN_IS_DELETED,null, LocaleContextHolder.getLocale()), HTTP_OK));
+            Campaign campaign = campaignService.getCampaignByID(id);
+            return ResponseEntity.ok(CampaignResponse.mapCampaign(campaign));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
 
+    }
     @PatchMapping("/{id}")
     public ResponseEntity<ResponseMessage<CampaignDTO>> deleteCampaign(@PathVariable Long id){
         try{
@@ -87,8 +112,6 @@ public class CampaignController {
             @Valid @PathVariable Long id,
             @RequestPart(value = "file", required = true) MultipartFile file,
             @RequestPart(value = "data", required = true) CampaignAndCreativesDTO campaignAndCreativesDTO) throws IOException {
-        List<String> listMessage = new ArrayList<>();
-
             CreativeDTO creatives = campaignAndCreativesDTO.getCreativesDTO();
             String creativesName = creatives.getTitle();
             Optional<Campaign> oldCampaign = campaignRepository.findByIdAndDeleteFlagIsFalse(id);
@@ -129,7 +152,7 @@ public class CampaignController {
             }
     }
 
-    @PostMapping(value = "/", consumes = {"multipart/form-data"})
+    @PostMapping(value = "", consumes = {"multipart/form-data"})
     public ResponseEntity<ResponseMessage<CampaignAndCreativesDTO>> createCampaign(
             @RequestPart("file") MultipartFile file,
             @RequestPart("data") CampaignAndCreativesDTO campaignAndCreativesDTO,
