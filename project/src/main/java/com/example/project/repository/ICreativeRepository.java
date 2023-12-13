@@ -11,6 +11,6 @@ import java.util.Optional;
 public interface ICreativeRepository extends JpaRepository<Creatives, Integer> {
     boolean existsByTitleAndDeleteFlagIsFalse(String title);
     @Query("SELECT c FROM Creatives c WHERE c.title = :title AND c.deleteFlag = false")
-    Optional<Creatives> findByName(@Param("title") String title);
+    Optional<Creatives> findByName(String title);
     Optional<Creatives>  findByCampaignIdAndDeleteFlagIsFalse(Optional<Campaign> campaign);
 }

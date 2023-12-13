@@ -12,7 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -91,7 +90,7 @@ public class JwtService {
                 .getBody();
         return claims.getExpiration();
     }
-    public String extractUsername(String token) {
+    public String findUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 

@@ -45,6 +45,6 @@ public class Creatives {
     @Column(name = "update_at")
     private Timestamp updateAt;
 
-    @Column(name = "delete_flag", nullable = false, columnDefinition = "boolean default false")
+    @Column(name = "delete_flag")
     private Boolean deleteFlag;
 }

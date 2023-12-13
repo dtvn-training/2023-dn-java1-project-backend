@@ -44,7 +44,7 @@ public class Constants {
     public static final String CAMPAIGN_GET_SUCCESS = "campaign.get.success";
 
     public static final String CAMPAIGN_CREATE_FAILED = "campaign.create.failed";
-    public static final String CAMPAIGN_CREATE_SUCCESS = "campaign.create.successs";
+    public static final String CAMPAIGN_CREATE_SUCCESS = "campaign.create.success";
     public static final String CAMPAIGN_NOT_FOUND = "campaign.not.found";
     public static final String CAMPAIGN_DELETE_SUCCESS= "campaign.delete.success";
     public static final String CAMPAIGN_ID_INVALID= "campaign.id.invalid";
@@ -61,6 +61,11 @@ public class Constants {
     public static final String FIREBASE_BUCKET = "firebase.bucket";
     public static final String FIREBASE_PROJECT_ID ="firebase.id";
 
-    public static final String BEARER_PREFIX = "bearer.prefix ";
+    public static final String BEARER_PREFIX = "bearer.prefix";
 
+    public static final String NOT_AN_IMAGE = "not.an.image";
+
+    public static final String IMAGE_CHECK_ERROR = "image.check.error";
+
+    public static final String IMAGE_MAX_SIZE = "image.max.size";
 }

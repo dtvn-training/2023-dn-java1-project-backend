@@ -36,19 +36,19 @@ public class Campaign {
     private LocalDateTime endDate;
 
     @ManyToOne
-    @JoinColumn(name = "id", nullable = false)
+    @JoinColumn(name = "id")
     private User user_update;
 
-    @Column(name = "delete_flag", nullable = false)
+    @Column(name = "delete_flag")
     private boolean deleteFlag;
 
-    @Column(name = "delete_at", nullable = true, updatable = false)
+    @Column(name = "delete_at")
     private LocalDateTime deleteAt;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = true)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @Column(name = "usage_rate", columnDefinition = "FLOAT DEFAULT 0.0")
@@ -56,4 +56,11 @@ public class Campaign {
 
     @Column(name = "used_amount", columnDefinition = "INT DEFAULT 0")
     private Double usedAmount;
+
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
 }
