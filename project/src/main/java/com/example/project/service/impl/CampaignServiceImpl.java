@@ -44,12 +44,13 @@ public class CampaignServiceImpl implements ICampaignService {
     private final IFirebaseService iFirebaseService;
     private final ModelMapper mapper = new ModelMapper();
     private final MessageSource messageSource;
+
     @Override
     public Page<CampaignAndImgDTO> getCampaign(String name, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
         Page<Campaign> listCampaign = iCampaignRepository.getCampaign(name,startDate,endDate, pageable);
         List<CampaignAndImgDTO> listCampaignAndCreativesDTO = new ArrayList<>();
         listCampaign.forEach(campaign -> {
-                    CampaignAndImgDTO campaginAndImgDTO = new CampaignAndImgDTO();
+            CampaignAndImgDTO campaginAndImgDTO = new CampaignAndImgDTO();
                     Optional<Creatives>  creatives =  iCreativeRepository.findByCampaignIdAndDeleteFlagIsFalse(Optional.ofNullable(campaign));
                     campaginAndImgDTO = mapper.map(campaign, CampaignAndImgDTO.class);
                     campaginAndImgDTO.setImgUrl(creatives.get().getImageUrl());
@@ -59,39 +60,28 @@ public class CampaignServiceImpl implements ICampaignService {
                     listCampaignAndCreativesDTO.add(campaginAndImgDTO);
                 }
         );
+        // Tạo một đối tượng Pageable mới với tổng số phần tử tính toán
         Pageable newPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), listCampaign.getSort());
+
+        // Tạo đối tượng PageImpl với danh sách và Pageable mới
         Page<CampaignAndImgDTO> page = new PageImpl<>(listCampaignAndCreativesDTO, newPageable, listCampaign.getTotalElements());
         return page;
     }
     @Override
     public CampaignAndCreativesDTO createCampaign(CampaignAndCreativesDTO campaignAndCreativesDTO, User user) {
-        Campaign campaignCreated =  new Campaign();
-        campaignCreated = mapper.map(campaignAndCreativesDTO, Campaign.class);
+        CampaignDTO campaignDTO = campaignAndCreativesDTO.getCampaignDTO();
+        CreativeDTO creativeDTO = campaignAndCreativesDTO.getCreativesDTO();
+        Campaign campaignCreated = mapper.map(campaignDTO, Campaign.class);
         campaignCreated.setUsageRate(0.0);
         campaignCreated.setUsedAmount(0.0);
-        if(campaignCreated.getBidAmount() == null){
-            campaignCreated.setBidAmount(0.0);
-        }
-        if(campaignCreated.getBudget() == null){
-            campaignCreated.setBudget(0.0);
-        }
-        if(campaignCreated.getStatus() == null){
-            campaignCreated.setStatus(true);
-        }
-        campaignCreated.setUser_update(user);
+        campaignCreated.setUserID(user);
         iCampaignRepository.save(campaignCreated);
-        Creatives creatives = new Creatives();
-        creatives = mapper.map(campaignAndCreativesDTO, Creatives.class);
-        System.out.println(campaignCreated);
-        iCampaignRepository.save(campaignCreated);
+
+        Creatives creatives = mapper.map(creativeDTO, Creatives.class);
         creatives.setCampaignId(campaignCreated);
         creatives.setDeleteFlag(false);
+        iCreativeRepository.save(creatives);
         return campaignAndCreativesDTO;
-    }
-    @Override
-    public Campaign getCampaignByID(Long userID) throws Exception {
-        return iCampaignRepository.findById(userID)
-                .orElseThrow(() -> new ErrorException(messageSource.getMessage(CAMPAIGN_ID_INVALID, null, LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
     }
     @Override
     public void deleteCampaign(Long campaignId) {

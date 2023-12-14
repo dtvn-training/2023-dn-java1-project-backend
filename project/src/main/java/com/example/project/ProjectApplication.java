@@ -1,5 +1,6 @@
 package com.example.project;
 
+import com.example.project.model.EnumRole;
 import com.example.project.model.Role;
 import com.example.project.model.User;
 import com.example.project.service.IRoleService;
@@ -21,5 +22,4 @@ public class ProjectApplication {
     public static void main(String[] args) {
         SpringApplication.run(ProjectApplication.class, args);
     }
-
 }

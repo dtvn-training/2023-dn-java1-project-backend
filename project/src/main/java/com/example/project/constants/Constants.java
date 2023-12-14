@@ -52,8 +52,8 @@ public class Constants {
     public static final String CAMPAIGN_ALREADY_EXISTS = "campaign.already.exits";
     public static final String CAMPAIGN_UPDATE_SUCCESS = "campaign.update.success";
     public static final String CAMPAIGN_UPDATE_FAILED = "campaign.update.failed";
-    public static final String CREATIVES_ALREADY_EXISTS = "creativies.already.exists";
-    public static final String CREATIVES_NOT_FOUND = "creativies.not.found";
+    public static final String CREATIVES_ALREADY_EXISTS = "creatives.already.exists";
+    public static final String CREATIVES_NOT_FOUND = "creatives.not.found";
     public static final String STARTDATE_IS_AFTER_ENDDATE = "start.date.is.after.enddate";
 
     //Firebase Constants

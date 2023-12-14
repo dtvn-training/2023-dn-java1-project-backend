@@ -56,9 +56,9 @@ public class CampaignController {
     private final MessageSource messageSource;
     @GetMapping("")
     public ResponseEntity<ResponseMessage<Page<CampaignAndImgDTO>>> getCampaigns(@RequestParam(value = "keySearch", required = false) String keySearch,
-                                                                                 @RequestParam("page") int page,
-                                                                                 @RequestParam("limit") int limit,
-                                                                                 @RequestParam(value = "startDate",required = false) String startDate,
+                                                                                 @RequestParam(value = "page", required = false) int page,
+                                                                                 @RequestParam(value = "limit", required = false) int limit,
+                                                                                 @RequestParam(value = "startDate", required = false) String startDate,
                                                                                  @RequestParam(value = "endDate", required = false) String endDate){
         if(startDate == null || startDate.isEmpty()){
             startDate = "1900-01-01";
@@ -67,32 +67,25 @@ public class CampaignController {
         }
         LocalDateTime startDateTime = null;
         LocalDateTime endDateTime = null;
+
         try {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            Date parsedSDate = dateFormat.parse(startDate);
-            Date parsedEDate = dateFormat.parse(endDate);
-            startDateTime = parsedSDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-            endDateTime = parsedEDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            if (startDate != null && !startDate.isEmpty()) {
+                Date parsedSDate = dateFormat.parse(startDate);
+                startDateTime = parsedSDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                Date parsedEDate = dateFormat.parse(endDate);
+                endDateTime = parsedEDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            }
+
         } catch (ParseException e) {
+            // Xử lý lỗi chuyển đổi
             e.printStackTrace();
         }
         Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").ascending());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ResponseMessage<>(messageSource.getMessage(CAMPAIGN_GET_SUCCESS, null, LocaleContextHolder.getLocale()), HTTP_OK,campaignService.getCampaign(keySearch,startDateTime, endDateTime, pageable)));
-    }
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getCampaign(@PathVariable Long id) {
-        try {
-            Optional<Campaign> getCampaign = campaignRepository.findById(id);
-            //Check if account has been deleted
-            if(getCampaign.get().isDeleteFlag())
-                return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage<>(messageSource.getMessage(CAMPAIGN_IS_DELETED,null, LocaleContextHolder.getLocale()), HTTP_OK));
-            Campaign campaign = campaignService.getCampaignByID(id);
-            return ResponseEntity.ok(CampaignResponse.mapCampaign(campaign));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
     }
     @PatchMapping("/{id}")
     public ResponseEntity<ResponseMessage<CampaignDTO>> deleteCampaign(@PathVariable Long id){
