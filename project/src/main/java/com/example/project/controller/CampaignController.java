@@ -1,6 +1,7 @@
 package com.example.project.controller;
 
 import com.example.project.dto.response.*;
+import com.example.project.exception.CampaignNotFoundException;
 import com.example.project.exception.ResponseMessage;
 import com.example.project.model.Campaign;
 import com.example.project.model.Creatives;
@@ -39,8 +40,7 @@ import java.util.Optional;
 import static com.example.project.constants.Constants.*;
 import static com.example.project.constants.FieldValueLengthConstants.DEFAULT_PAGE_NUMBER;
 import static com.example.project.constants.FieldValueLengthConstants.DEFAULT_PAGE_SIZE;
-import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
-import static java.net.HttpURLConnection.HTTP_OK;
+import static java.net.HttpURLConnection.*;
 
 @CrossOrigin
 @RestController
@@ -87,6 +87,33 @@ public class CampaignController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ResponseMessage<>(messageSource.getMessage(CAMPAIGN_GET_SUCCESS, null, LocaleContextHolder.getLocale()), HTTP_OK,campaignService.getCampaign(keySearch,startDateTime, endDateTime, pageable)));
     }
+//    @GetMapping("/{id}")
+////    public ResponseEntity<?> getCampaign(@PathVariable Long id) {
+////        try {
+////            Optional<Campaign> getCampaign = campaignRepository.findById(id);
+////            //Check if account has been deleted
+////            if(getCampaign.get().isDeleteFlag())
+////                return ResponseEntity.status(HttpStatus.OK)
+////                        .body(new ResponseMessage<>(messageSource.getMessage(CAMPAIGN_IS_DELETED,null, LocaleContextHolder.getLocale()), HTTP_OK));
+////            Campaign campaign = campaignService.getCampaignByID(id);
+////            return ResponseEntity.ok(CampaignResponse.mapCampaign(campaign));
+////        } catch (Exception e) {
+////            return ResponseEntity.badRequest().body(e.getMessage());
+////        }
+////    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getCampaign(@PathVariable Long id) {
+        try {
+            CampaignAndCreativesDTO campaignAndCreativesDTO = campaignService.getCampaignAndCreativesDTOById(id);
+            return ResponseEntity.ok(campaignAndCreativesDTO);
+        } catch (CampaignNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage<>(e.getMessage(), HTTP_NOT_FOUND));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ResponseMessage<>(e.getMessage(), HTTP_BAD_REQUEST));
+        }
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<ResponseMessage<CampaignDTO>> deleteCampaign(@PathVariable Long id){
         try{
@@ -112,19 +139,20 @@ public class CampaignController {
                     .body(new ResponseMessage<>(messageSource.getMessage(USER_DELETE_FAIL, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
         }
     }
+
     @PutMapping("/{id}")
     public ResponseEntity<ResponseMessage<CampaignAndCreativesDTO>> updateCampaign(
             @Valid @PathVariable Long id,
             @RequestPart(value = "file", required = true) MultipartFile file,
             @RequestPart(value = "data", required = true) CampaignAndCreativesDTO campaignAndCreativesDTO) throws IOException {
-            CreativeDTO creatives = campaignAndCreativesDTO.getCreativesDTO();
-            String creativesName = creatives.getTitle();
-            Optional<Campaign> oldCampaign = campaignRepository.findByIdAndDeleteFlagIsFalse(id);
-            //check campaign is present
-            if(oldCampaign.isPresent()){
-                return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage<>(messageSource.getMessage(CAMPAIGN_NOT_FOUND, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
-            }
+        CreativeDTO creatives = campaignAndCreativesDTO.getCreativesDTO();
+        String creativesName = creatives.getTitle();
+        Optional<Campaign> oldCampaign = campaignRepository.findByIdAndDeleteFlagIsFalse(id);
+        //check campaign is present
+        if(!oldCampaign.isPresent()){
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage<>(messageSource.getMessage(CAMPAIGN_NOT_FOUND, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
+        }
         Optional<Creatives> oldCreate = creativeRepository.findByCampaignIdAndDeleteFlagIsFalse(oldCampaign);
         //check if creatives is not present
         if(!oldCreate.isPresent()){
@@ -149,6 +177,7 @@ public class CampaignController {
                     .body(new ResponseMessage<>(messageSource.getMessage(CREATIVES_ALREADY_EXISTS, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
         }
     }
+
     @PostMapping(value = "", consumes = {"multipart/form-data"})
     public ResponseEntity<ResponseMessage<CampaignAndCreativesDTO>> createCampaign(
             @RequestPart("file") MultipartFile file,

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.project.exception.CampaignNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -47,11 +48,13 @@ public class CampaignServiceImpl implements ICampaignService {
 
     @Override
     public Page<CampaignAndImgDTO> getCampaign(String name, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        Page<Campaign> listCampaign = iCampaignRepository.getCampaign(name,startDate,endDate, pageable);
+        Page<Campaign> listCampaign = iCampaignRepository.getCampaign(name, startDate, endDate, pageable);
         List<CampaignAndImgDTO> listCampaignAndCreativesDTO = new ArrayList<>();
         listCampaign.forEach(campaign -> {
             CampaignAndImgDTO campaginAndImgDTO = new CampaignAndImgDTO();
                     Optional<Creatives>  creatives =  iCreativeRepository.findByCampaignIdAndDeleteFlagIsFalse(Optional.ofNullable(campaign));
+//                    CampaignAndImgDTO campaginAndImgDTO = new CampaignAndImgDTO();
+//                    Optional<Creatives> creatives = iCreativeRepository.findByCampaignIdAndDeleteFlagIsFalse(Optional.ofNullable(campaign));
                     campaginAndImgDTO = mapper.map(campaign, CampaignAndImgDTO.class);
                     campaginAndImgDTO.setImgUrl(creatives.get().getImageUrl());
                     campaginAndImgDTO.setTitle(creatives.get().getTitle());
@@ -67,6 +70,7 @@ public class CampaignServiceImpl implements ICampaignService {
         Page<CampaignAndImgDTO> page = new PageImpl<>(listCampaignAndCreativesDTO, newPageable, listCampaign.getTotalElements());
         return page;
     }
+
     @Override
     public CampaignAndCreativesDTO createCampaign(CampaignAndCreativesDTO campaignAndCreativesDTO, User user) {
         CampaignDTO campaignDTO = campaignAndCreativesDTO.getCampaignDTO();
@@ -74,7 +78,7 @@ public class CampaignServiceImpl implements ICampaignService {
         Campaign campaignCreated = mapper.map(campaignDTO, Campaign.class);
         campaignCreated.setUsageRate(0.0);
         campaignCreated.setUsedAmount(0.0);
-        campaignCreated.setUserID(user);
+        campaignCreated.setUser_update(user);
         iCampaignRepository.save(campaignCreated);
 
         Creatives creatives = mapper.map(creativeDTO, Creatives.class);
@@ -83,11 +87,18 @@ public class CampaignServiceImpl implements ICampaignService {
         iCreativeRepository.save(creatives);
         return campaignAndCreativesDTO;
     }
+
+//    @Override
+//    public Campaign getCampaignByID(Long userID) throws Exception {
+//        return iCampaignRepository.findById(userID)
+//                .orElseThrow(() -> new ErrorException(messageSource.getMessage(CAMPAIGN_ID_INVALID, null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
+//    }
+
     @Override
     public void deleteCampaign(Long campaignId) {
         Optional<Campaign> campaign = iCampaignRepository.findByIdAndDeleteFlagIsFalse(campaignId);
         Optional<Creatives> creatives = iCreativeRepository.findByCampaignIdAndDeleteFlagIsFalse(campaign);
-        if(creatives.isPresent())
+        if (creatives.isPresent())
             creatives.get().setDeleteFlag(true);
         else {
             throw new RuntimeException(CREATIVES_NOT_FOUND);
@@ -95,39 +106,74 @@ public class CampaignServiceImpl implements ICampaignService {
         campaign.get().setDeleteFlag(true);
         iCampaignRepository.save(campaign.get());
     }
+
     @Override
-    public CampaignAndCreativesDTO updateCampaign(Long campaignId, CampaignAndCreativesDTO campaignAndCreativesDTO, MultipartFile file ) {
+    public CampaignAndCreativesDTO updateCampaign(Long campaignId, CampaignAndCreativesDTO campaignAndCreativesDTO, MultipartFile file) {
         CampaignDTO campaignDTO = campaignAndCreativesDTO.getCampaignDTO();
         CreativeDTO creativeDTO = campaignAndCreativesDTO.getCreativesDTO();
-        try{
+        try {
             Optional<Campaign> oldCampaign = iCampaignRepository.findByIdAndDeleteFlagIsFalse(campaignId);
-            Optional<Creatives> oldCreate = iCreativeRepository.findByCampaignIdAndDeleteFlagIsFalse(oldCampaign)  ;
-            if(oldCampaign.isPresent()){
+            Optional<Creatives> oldCreate = iCreativeRepository.findByCampaignIdAndDeleteFlagIsFalse(oldCampaign);
+            if (oldCampaign.isPresent()) {
                 //update campaign
-            oldCampaign.get().setStatus(campaignDTO.getStatus());
-            oldCampaign.get().setBudget(campaignDTO.getBudget());
-            oldCampaign.get().setBidAmount(campaignDTO.getBidAmount());
-            oldCampaign.get().setStartDate(campaignDTO.getStartDate());
-            oldCampaign.get().setEndDate(campaignDTO.getEndDate());
-            //update creative
-            oldCreate.get().setTitle(creativeDTO.getTitle());
-            oldCreate.get().setDescription(creativeDTO.getDescription());
-            //check if img is change
-            if(!file.isEmpty()){
-                String imgurl = iFirebaseService.uploadFile(file);
-                oldCreate.get().setImageUrl(imgurl);
-                campaignAndCreativesDTO.getCreativesDTO().setImageUrl(imgurl);
-            } else {
-                campaignAndCreativesDTO.getCreativesDTO().setImageUrl(oldCreate.get().getImageUrl());
-            }
-            oldCreate.get().setFinalUrl(creativeDTO.getFinalUrl());
-            iCampaignRepository.save(oldCampaign.get());
-            iCreativeRepository.save(oldCreate.get());
-            return campaignAndCreativesDTO;
-            } else throw new ErrorException(messageSource.getMessage(CAMPAIGN_UPDATE_FAILED, null, LocaleContextHolder.getLocale()), HTTP_FORBIDDEN);
+                oldCampaign.get().setName(campaignDTO.getName());
+                oldCampaign.get().setStatus(campaignDTO.getStatus());
+                oldCampaign.get().setBudget(campaignDTO.getBudget());
+                oldCampaign.get().setBidAmount(campaignDTO.getBidAmount());
+                oldCampaign.get().setStartDate(campaignDTO.getStartDate());
+                oldCampaign.get().setEndDate(campaignDTO.getEndDate());
+                //update creative
+                oldCreate.get().setTitle(creativeDTO.getTitle());
+                oldCreate.get().setDescription(creativeDTO.getDescription());
+                //check if img is change
+                if (!file.isEmpty()) {
+                    String imgurl = iFirebaseService.uploadFile(file);
+                    oldCreate.get().setImageUrl(imgurl);
+                    campaignAndCreativesDTO.getCreativesDTO().setImageUrl(imgurl);
+                } else {
+                    campaignAndCreativesDTO.getCreativesDTO().setImageUrl(oldCreate.get().getImageUrl());
+                }
+                oldCreate.get().setFinalUrl(creativeDTO.getFinalUrl());
+                iCampaignRepository.save(oldCampaign.get());
+                iCreativeRepository.save(oldCreate.get());
+                return campaignAndCreativesDTO;
+            } else
+                throw new ErrorException(messageSource.getMessage(CAMPAIGN_UPDATE_FAILED, null, LocaleContextHolder.getLocale()), HTTP_FORBIDDEN);
 
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new ErrorException(messageSource.getMessage(CAMPAIGN_UPDATE_FAILED, null, LocaleContextHolder.getLocale()), HTTP_FORBIDDEN);
         }
+    }
+
+    @Override
+    public CampaignAndCreativesDTO getCampaignAndCreativesDTOById(Long campaignId) {
+        Campaign campaign = iCampaignRepository.findById(campaignId)
+                .orElseThrow(() -> new CampaignNotFoundException("Campaign not found with ID: " + campaignId));
+
+        Creatives creatives = iCreativeRepository.findByCampaignId(campaign);
+        CampaignDTO campaignDTO = mapToCampaignDTO(campaign);
+        CreativeDTO creativeDTO = mapToCreativeDTO(creatives);
+
+        return new CampaignAndCreativesDTO(campaignDTO, creativeDTO);
+    }
+
+    private CampaignDTO mapToCampaignDTO(Campaign campaign) {
+        return new CampaignDTO(
+                campaign.getName(),
+                campaign.getStartDate(),
+                campaign.getEndDate(),
+                campaign.getBudget(),
+                campaign.getUsedAmount(),
+                campaign.getUsageRate(),
+                campaign.getStatus(),
+                campaign.getBidAmount());
+    }
+
+    private CreativeDTO mapToCreativeDTO(Creatives creatives) {
+        return new CreativeDTO(
+                creatives.getTitle(),
+                creatives.getDescription(),
+                creatives.getImageUrl(),
+                creatives.getFinalUrl());
     }
 }

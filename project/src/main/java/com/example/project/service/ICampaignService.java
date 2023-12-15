@@ -16,4 +16,7 @@ public interface ICampaignService {
     public void deleteCampaign(Long campaignId);
     public CampaignAndCreativesDTO updateCampaign(Long campaignId, CampaignAndCreativesDTO campaignAndCreativesDTO, MultipartFile file);
     public CampaignAndCreativesDTO createCampaign(CampaignAndCreativesDTO campaignAndCreativesDTO, User user);
+//    Campaign getCampaignByID(Long id) throws Exception;
+    CampaignAndCreativesDTO getCampaignAndCreativesDTOById(Long id);
+
 }

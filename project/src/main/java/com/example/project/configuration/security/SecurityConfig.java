@@ -75,13 +75,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.httpBasic().authenticationEntryPoint(restServicesEntryPoint());
         http.authorizeRequests()
                 .antMatchers("/api/login").permitAll()
+                .antMatchers("/api/users/**").permitAll()
+                .antMatchers("/api/campaigns/**").permitAll()
                 .antMatchers("/api/signout").authenticated()
                 .antMatchers("/api/refreshtoken").permitAll()
                 .antMatchers("/api/admin/infor").hasAuthority(String.valueOf(EnumRole.ROLE_ADMIN))
                 .antMatchers("/api/dac/infor").hasAuthority(String.valueOf(EnumRole.ROLE_DAC))
                 .antMatchers("/api/advertiser/infor").hasAuthority(String.valueOf(EnumRole.ROLE_ADVERTISER))
                 .anyRequest().authenticated()
-                .and().csrf().disable();
+                .and().csrf();
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling().accessDeniedHandler(customAccessDeniedHandler());
         http.sessionManagement()

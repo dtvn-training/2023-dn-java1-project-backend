@@ -15,11 +15,11 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 @Repository
 public interface ICampaignRepository extends JpaRepository<Campaign, Long>  {
-    @Query("SELECT c FROM Campaign c WHERE c.deleteFlag = false " +
+        @Query("SELECT c FROM Campaign c WHERE c.deleteFlag = false " +
             "AND (:name IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
             "AND ((:startdate IS NULL AND :enddate IS NULL) OR (c.startDate BETWEEN :startdate AND :enddate))" +
             " ORDER BY c.status desc")
-    Page<Campaign> getCampaign(
+        Page<Campaign> getCampaign(
             @Param("name") String name,
             @Param("startdate") LocalDateTime startdate,
             @Param("enddate") LocalDateTime enddate,
