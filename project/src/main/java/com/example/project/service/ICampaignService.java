@@ -1,11 +1,13 @@
 package com.example.project.service;
 
+import com.example.project.dto.response.BannerDTO;
 import com.example.project.dto.response.CampaignAndImgDTO;
 import com.example.project.dto.response.CampaignAndCreativesDTO;
 import com.example.project.model.Campaign;
 import com.example.project.model.User;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +18,8 @@ public interface ICampaignService {
     public void deleteCampaign(Long campaignId);
     public CampaignAndCreativesDTO updateCampaign(Long campaignId, CampaignAndCreativesDTO campaignAndCreativesDTO, MultipartFile file);
     public CampaignAndCreativesDTO createCampaign(CampaignAndCreativesDTO campaignAndCreativesDTO, User user);
-//    Campaign getCampaignByID(Long id) throws Exception;
     CampaignAndCreativesDTO getCampaignAndCreativesDTOById(Long id);
 
+    public List<BannerDTO> listBannerUrl();
+    public void impression(Long campaignId);
 }

@@ -234,4 +234,27 @@ public class CampaignController {
                     .body(new ResponseMessage<>(messageSource.getMessage(CREATIVES_ALREADY_EXISTS, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
         }
     }
+
+    @GetMapping("/banner")
+    public ResponseEntity<ResponseMessage<List<BannerDTO>>> showBanner(){
+        try{
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage<>(messageSource.getMessage(GET_TOP_BANNER_SUCCESS, null, LocaleContextHolder.getLocale()), HTTP_OK, campaignService.listBannerUrl()));
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage<>(messageSource.getMessage(GET_TOP_BANNER_FAIL,null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
+        }
+    }
+
+    @GetMapping("/impression")
+    public ResponseEntity<?> impression(@RequestParam(value = "id", required = true) Long id) {
+        try{
+            campaignService.impression(id);
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage<>(messageSource.getMessage(IMPRESSION_FAIL,null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
+        }
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseMessage<>(messageSource.getMessage(IMPRESSION_SUCCESS, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
+    }
 }

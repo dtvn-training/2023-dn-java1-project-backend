@@ -1,7 +1,5 @@
 package com.example.project.constants;
 
-import org.springframework.stereotype.Component;
-
 public class Constants {
 
     // Validation Errors
@@ -54,7 +52,7 @@ public class Constants {
     public static final String CAMPAIGN_UPDATE_FAILED = "campaign.update.failed";
     public static final String CREATIVES_ALREADY_EXISTS = "creatives.already.exists";
     public static final String CREATIVES_NOT_FOUND = "creatives.not.found";
-    public static final String STARTDATE_IS_AFTER_ENDDATE = "start.date.is.after.enddate";
+    public static final String STARTDATE_IS_AFTER_ENDDATE = "start.date.is.after.end.date";
 
     //Firebase Constants
     public static final String FIREBASE_SDK_JSON ="firebase.sdk.json";
@@ -68,4 +66,12 @@ public class Constants {
     public static final String IMAGE_CHECK_ERROR = "image.check.error";
 
     public static final String IMAGE_MAX_SIZE = "image.max.size";
+
+    public static final String GET_TOP_BANNER_SUCCESS = "get.top.banner.success";
+
+    public static final String GET_TOP_BANNER_FAIL = "get.top.banner.fail";
+
+    public static final String IMPRESSION_FAIL = "impression.fail";
+
+    public static final String IMPRESSION_SUCCESS = "impression.success";
 }

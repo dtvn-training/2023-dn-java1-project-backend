@@ -1,16 +1,15 @@
 package com.example.project.service.impl;
 
-import static com.example.project.constants.Constants.CAMPAIGN_ID_INVALID;
 import static com.example.project.constants.Constants.CAMPAIGN_UPDATE_FAILED;
 import static com.example.project.constants.Constants.CREATIVES_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
-import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.project.dto.response.*;
 import com.example.project.exception.CampaignNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.MessageSource;
@@ -22,10 +21,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.project.dto.response.CampaignAndImgDTO;
-import com.example.project.dto.response.CampaignAndCreativesDTO;
-import com.example.project.dto.response.CampaignDTO;
-import com.example.project.dto.response.CreativeDTO;
 import com.example.project.exception.ErrorException;
 import com.example.project.model.Campaign;
 import com.example.project.model.Creatives;
@@ -63,10 +58,8 @@ public class CampaignServiceImpl implements ICampaignService {
                     listCampaignAndCreativesDTO.add(campaginAndImgDTO);
                 }
         );
-        // Tạo một đối tượng Pageable mới với tổng số phần tử tính toán
         Pageable newPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), listCampaign.getSort());
 
-        // Tạo đối tượng PageImpl với danh sách và Pageable mới
         Page<CampaignAndImgDTO> page = new PageImpl<>(listCampaignAndCreativesDTO, newPageable, listCampaign.getTotalElements());
         return page;
     }
@@ -87,12 +80,6 @@ public class CampaignServiceImpl implements ICampaignService {
         iCreativeRepository.save(creatives);
         return campaignAndCreativesDTO;
     }
-
-//    @Override
-//    public Campaign getCampaignByID(Long userID) throws Exception {
-//        return iCampaignRepository.findById(userID)
-//                .orElseThrow(() -> new ErrorException(messageSource.getMessage(CAMPAIGN_ID_INVALID, null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
-//    }
 
     @Override
     public void deleteCampaign(Long campaignId) {
@@ -175,5 +162,36 @@ public class CampaignServiceImpl implements ICampaignService {
                 creatives.getDescription(),
                 creatives.getImageUrl(),
                 creatives.getFinalUrl());
+    }
+
+    @Override
+    public List<BannerDTO> listBannerUrl() {
+        List<Campaign> campaigns = null;
+        try {
+            campaigns = iCampaignRepository.findTopCampaigns(PageRequest.of(0, 5));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        List<BannerDTO> imgUrl = new ArrayList<>();
+        for(int i = 0; i < campaigns.size(); i++){
+            Optional<Creatives>  creatives =  iCreativeRepository.findByCampaignIdAndDeleteFlagIsFalse(Optional.ofNullable(campaigns.get(i)));
+            if(creatives.isPresent()){
+                BannerDTO bannerDTO = new BannerDTO(creatives.get().getCreativeId(),creatives.get().getImageUrl());
+                imgUrl.add(bannerDTO);
+                iCampaignRepository.save(campaigns.get(i));
+            }
+        }
+        return imgUrl;
+    }
+
+    @Override
+    public void impression(Long id) {
+        Optional<Campaign> campaign = iCampaignRepository.findById(id);
+        if(campaign.isPresent()){
+            Double usedAmount = campaign.get().getUsedAmount();
+            campaign.get().setUsedAmount((usedAmount + campaign.get().getBidAmount()));
+            campaign.get().setUsageRate(((campaign.get().getUsedAmount() /  campaign.get().getBudget())) * 100);
+            iCampaignRepository.save(campaign.get());
+        }
     }
 }

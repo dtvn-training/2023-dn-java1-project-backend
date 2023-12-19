@@ -7,6 +7,7 @@ import lombok.*;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 
 @Data
 @Getter
@@ -14,7 +15,7 @@ import javax.validation.constraints.NotNull;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDTO extends BaseResponse{
+public class UserDTO{
     private Long id;
     private  String email;
     private  String firstName;
@@ -22,4 +23,5 @@ public class UserDTO extends BaseResponse{
     private  String address;
     private  String phone;
     private  Long roleId;
+    private LocalDateTime updatedAt;
 }

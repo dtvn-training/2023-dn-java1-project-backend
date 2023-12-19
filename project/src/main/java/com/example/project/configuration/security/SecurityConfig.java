@@ -3,7 +3,6 @@ package com.example.project.configuration.security;
 import com.example.project.configuration.custom.CustomAccessDeniedHandler;
 import com.example.project.configuration.custom.RestAuthenticationEntryPoint;
 import com.example.project.configuration.filter.JwtAuthenticationFilter;
-import com.example.project.model.EnumRole;
 import com.example.project.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,18 +76,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/login").permitAll()
                 .antMatchers("/api/users/**").permitAll()
                 .antMatchers("/api/campaigns/**").permitAll()
-                .antMatchers("/api/signout").authenticated()
-                .antMatchers("/api/refreshtoken").permitAll()
-                .antMatchers("/api/admin/infor").hasAuthority(String.valueOf(EnumRole.ROLE_ADMIN))
-                .antMatchers("/api/dac/infor").hasAuthority(String.valueOf(EnumRole.ROLE_DAC))
-                .antMatchers("/api/advertiser/infor").hasAuthority(String.valueOf(EnumRole.ROLE_ADVERTISER))
+                .antMatchers("/api/signOut").authenticated()
+                .antMatchers("/api/tokens/refresh").permitAll()
                 .anyRequest().authenticated()
                 .and().csrf();
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling().accessDeniedHandler(customAccessDeniedHandler());
         http.sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.cors().disable();
+        http.cors();
     }
 
     @Bean

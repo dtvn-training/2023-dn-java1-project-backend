@@ -17,4 +17,6 @@ public interface ICreativeRepository extends JpaRepository<Creatives, Integer> {
     Optional<Creatives> findByCampaignIdAndDeleteFlagIsFalse(Optional<Campaign> campaign);
 
     Creatives findByCampaignId(Campaign campaign);
+
+
 }
