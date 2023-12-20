@@ -1,5 +1,6 @@
 package com.example.project.controller;
 
+import com.example.project.constants.RegularConstants;
 import com.example.project.dto.response.*;
 import com.example.project.exception.ResponseMessage;
 import com.example.project.model.Campaign;
@@ -8,9 +9,8 @@ import com.example.project.model.User;
 import com.example.project.repository.ICampaignRepository;
 import com.example.project.repository.ICreativeRepository;
 import com.example.project.repository.IUserRepository;
-import com.example.project.service.ICampaignService;
-import com.example.project.service.IFirebaseService;
-import com.example.project.service.JwtService;
+import com.example.project.service.*;
+import com.example.project.utlis.validator.CampaignValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -18,8 +18,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,6 +41,7 @@ import java.util.Optional;
 import static com.example.project.constants.Constants.*;
 import static com.example.project.constants.FieldValueLengthConstants.DEFAULT_PAGE_NUMBER;
 import static com.example.project.constants.FieldValueLengthConstants.DEFAULT_PAGE_SIZE;
+import static com.example.project.constants.RegularConstants.DATE_REGEX;
 import static java.net.HttpURLConnection.*;
 
 @CrossOrigin
@@ -47,32 +50,38 @@ import static java.net.HttpURLConnection.*;
 @RequiredArgsConstructor
 public class CampaignController {
     private final ICampaignService campaignService;
-    private final ICampaignRepository campaignRepository;
-    private final ICreativeRepository creativeRepository;
-    private final IUserRepository iUserRepository;
+    private final ICreativeService iCreativeService;
+    private final IUserService iUserService;
     private final JwtService jwtService;
     private final IFirebaseService firebaseService;
     private final MessageSource messageSource;
+    private final CampaignValidator campaignValidator;
     @GetMapping("")
     public ResponseEntity<ResponseMessage<Page<CampaignAndImgDTO>>> getCampaigns(@RequestParam(value = "keySearch", required = false) String keySearch,
                                                                                  @RequestParam(value = "page", required = false) int page,
                                                                                  @RequestParam(value = "limit", required = false) int limit,
                                                                                  @RequestParam(value = "startDate", required = false) String startDate,
                                                                                  @RequestParam(value = "endDate", required = false) String endDate){
+
         LocalDateTime startDateTime = null;
         LocalDateTime endDateTime = null;
-
         try {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            if (startDate != null && !startDate.isEmpty()) {
+            if(startDate != null && !startDate.isEmpty() ){
+                if (!startDate.matches(DATE_REGEX)) {
+                    return ResponseEntity.badRequest().body(new ResponseMessage<>(INVALID_DATE_FORMAT, HTTP_BAD_REQUEST));
+                }
                 Date parsedSDate = dateFormat.parse(startDate);
                 startDateTime = parsedSDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+
             }
-            if (endDate != null && !endDate.isEmpty()) {
+            if(endDate != null && !endDate.isEmpty()){
+                if (!endDate.matches(DATE_REGEX)) {
+                    return ResponseEntity.badRequest().body(new ResponseMessage<>(INVALID_DATE_FORMAT, HTTP_BAD_REQUEST));
+                }
                 Date parsedEDate = dateFormat.parse(endDate);
                 endDateTime = parsedEDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             }
-
         } catch (ParseException e) {
             return ResponseEntity.badRequest().body(new ResponseMessage<>(e.getMessage(), HTTP_BAD_REQUEST));
         }
@@ -94,7 +103,7 @@ public class CampaignController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseMessage<CampaignDTO>> deleteCampaign(@PathVariable Long id){
         try{
-            Optional<Campaign> campaign = campaignRepository.findByIdAndDeleteFlagIsFalse(id);
+            Optional<Campaign> campaign = campaignService.findByIdAndDeleteFlagIsFalse(id);
             if(campaign.isPresent()){
                 if(campaign.get().isDeleteFlag()){
                     return ResponseEntity.status(HttpStatus.OK)
@@ -124,20 +133,20 @@ public class CampaignController {
             @RequestPart(value = "data", required = true) CampaignAndCreativesDTO campaignAndCreativesDTO) {
         CreativeDTO creatives = campaignAndCreativesDTO.getCreativesDTO();
         String creativesName = creatives.getTitle();
-        Optional<Campaign> oldCampaign = campaignRepository.findByIdAndDeleteFlagIsFalse(id);
+        Optional<Campaign> oldCampaign = campaignService.findByIdAndDeleteFlagIsFalse(id);
         //check campaign is present
         if(!oldCampaign.isPresent()){
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage<>(messageSource.getMessage(CAMPAIGN_NOT_FOUND, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
         }
-        Optional<Creatives> oldCreate = creativeRepository.findByCampaignIdAndDeleteFlagIsFalse(oldCampaign);
+        Optional<Creatives> oldCreate = iCreativeService.findByCampaignIdAndDeleteFlagIsFalse(oldCampaign);
         //check if creatives is not present
         if(!oldCreate.isPresent()){
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage<>(messageSource.getMessage(CREATIVES_NOT_FOUND, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
         }
         if(creatives.getTitle().equals(oldCreate.get().getTitle())
-                || !creativeRepository.existsByTitleAndDeleteFlagIsFalse(creativesName)){
+                || !iCreativeService.existsByTitleAndDeleteFlagIsFalse(creativesName)){
             CampaignDTO campaignDTO = campaignAndCreativesDTO.getCampaignDTO();
             if (campaignDTO.getEndDate().isAfter(campaignDTO.getStartDate())) {
                 // endDateTime after startDateTime
@@ -165,45 +174,29 @@ public class CampaignController {
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
         Page<User> accountPage;
         try{
-            accountPage = iUserRepository.findNameOrEmail(currenAccount, pageable);
+            accountPage = iUserService.findNameOrEmail(currenAccount, pageable);
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage<>(messageSource.getMessage(USER_NOT_FOUND, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
         }
         List<User> users = accountPage.getContent();
         User user = users.get(0);
-        boolean isExistCampaign = campaignRepository.existsByNameAndDeleteFlagIsFalse(campaignAndCreativesDTO.getCampaignDTO().getName());
+        boolean isExistCampaign = campaignService.existsByNameAndDeleteFlagIsFalse(campaignAndCreativesDTO.getCampaignDTO().getName());
         if(isExistCampaign){
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage<>(messageSource.getMessage(CAMPAIGN_ALREADY_EXISTS, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
         }
-        boolean isExistCreative = creativeRepository.existsByTitleAndDeleteFlagIsFalse(campaignAndCreativesDTO.getCreativesDTO().getTitle());
+        boolean isExistCreative = iCreativeService.existsByTitleAndDeleteFlagIsFalse(campaignAndCreativesDTO.getCreativesDTO().getTitle());
         if(!isExistCreative){
             CampaignDTO campaignDTO = campaignAndCreativesDTO.getCampaignDTO();
             if (campaignDTO.getEndDate().isAfter(campaignDTO.getStartDate())) {
-                try {
-                    BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(file.getBytes()));
-                    if (bufferedImage == null) {
-                        return ResponseEntity.status(HttpStatus.OK)
-                                .body(new ResponseMessage<>(messageSource.getMessage(NOT_AN_IMAGE, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
-                    }
-                } catch (IOException e) {
-                    return ResponseEntity.status(HttpStatus.OK)
-                            .body(new ResponseMessage<>(messageSource.getMessage(IMAGE_CHECK_ERROR, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
-                }
-                //check size image
-                if (file.getSize() > 10 * 1024 * 1024) {
-                    return ResponseEntity.status(HttpStatus.OK)
-                            .body(new ResponseMessage<>(messageSource.getMessage(IMAGE_MAX_SIZE, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
-                }
-                // endDateTime after startDateTime
-                String imgurl = firebaseService.uploadFile(file);
-                campaignAndCreativesDTO.getCreativesDTO().setImageUrl(imgurl);
+                campaignValidator.validatorImage(file);
+                String imgUrl = firebaseService.uploadFile(file);
+                campaignAndCreativesDTO.getCreativesDTO().setImageUrl(imgUrl);
                 campaignService.createCampaign(campaignAndCreativesDTO, user);
                 return ResponseEntity.status(HttpStatus.OK)
                         .body(new ResponseMessage<>(messageSource.getMessage(CAMPAIGN_CREATE_SUCCESS, null, LocaleContextHolder.getLocale()), HTTP_OK,campaignAndCreativesDTO));
             } else {
-                // endDateTime not after startDateTime
                 return ResponseEntity.status(HttpStatus.OK)
                         .body(new ResponseMessage<>(messageSource.getMessage(START_DATE_IS_AFTER_END_DATE, null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
             }

@@ -6,6 +6,7 @@ import com.example.project.service.IRoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -17,7 +18,7 @@ public class RoleServiceImpl implements IRoleService {
     private final IRoleRepository roleRepository;
 
     @Override
-    public Iterable<Role> findAll() {
+    public List<Role> findAll() {
         return roleRepository.findAll();
     }
 

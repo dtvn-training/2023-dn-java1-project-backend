@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 public class Campaign {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_campaign")
     private Long id;
 
     @Column(name = "name", length = 150)
@@ -37,8 +36,8 @@ public class Campaign {
     private LocalDateTime endDate;
 
     @ManyToOne
-    @JoinColumn(name = "id")
-    private User user_update;
+    @JoinColumn(name = "id_user")
+    private User userUpdate;
 
     @Column(name = "delete_flag")
     private boolean deleteFlag;
@@ -52,10 +51,10 @@ public class Campaign {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "usage_rate", columnDefinition = "FLOAT DEFAULT 0.0")
+    @Column(name = "usage_rate", columnDefinition = "Double DEFAULT 0.0")
     private Double usageRate;
 
-    @Column(name = "used_amount", columnDefinition = "INT DEFAULT 0")
+    @Column(name = "used_amount", columnDefinition = "Double DEFAULT 0")
     private Double usedAmount;
 
 

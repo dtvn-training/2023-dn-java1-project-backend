@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.example.project.dto.response.*;
+import com.example.project.utlis.validator.CampaignValidator;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -39,10 +40,31 @@ public class CampaignServiceImpl implements ICampaignService {
     private final IFirebaseService iFirebaseService;
     private final ModelMapper mapper = new ModelMapper();
     private final MessageSource messageSource;
+    private final CampaignValidator campaignValidator;
+
+    @Override
+    public Page<Campaign> getCampaigns(String name, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        return iCampaignRepository.getCampaigns(name, startDate, endDate, pageable);
+    }
+
+    @Override
+    public Optional<Campaign> findByIdAndDeleteFlagIsFalse(Long id) {
+        return iCampaignRepository.findByIdAndDeleteFlagIsFalse(id);
+    }
+
+    @Override
+    public boolean existsByNameAndDeleteFlagIsFalse(String name) {
+        return iCampaignRepository.existsByNameAndDeleteFlagIsFalse(name);
+    }
+
+    @Override
+    public List<Campaign> findTopCampaigns(Pageable pageable) {
+        return iCampaignRepository.findTopCampaigns(pageable);
+    }
 
     @Override
     public Page<CampaignAndImgDTO> getCampaign(String name, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        Page<Campaign> listCampaign = iCampaignRepository.getCampaign(name, startDate, endDate, pageable);
+        Page<Campaign> listCampaign = iCampaignRepository.getCampaigns(name, startDate, endDate, pageable);
         List<CampaignAndImgDTO> listCampaignAndCreativesDTO = new ArrayList<>();
         listCampaign.forEach(campaign -> {
             CampaignAndImgDTO campaginAndImgDTO = new CampaignAndImgDTO();
@@ -56,21 +78,18 @@ public class CampaignServiceImpl implements ICampaignService {
                 }
         );
         Pageable newPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), listCampaign.getSort());
-
         Page<CampaignAndImgDTO> page = new PageImpl<>(listCampaignAndCreativesDTO, newPageable, listCampaign.getTotalElements());
         return page;
     }
 
     @Override
     public CampaignAndCreativesDTO createCampaign(CampaignAndCreativesDTO campaignAndCreativesDTO, User user) {
+        campaignValidator.validatorCreate(campaignAndCreativesDTO);
         CampaignDTO campaignDTO = campaignAndCreativesDTO.getCampaignDTO();
         CreativeDTO creativeDTO = campaignAndCreativesDTO.getCreativesDTO();
         Campaign campaignCreated = mapper.map(campaignDTO, Campaign.class);
-        campaignCreated.setUsageRate(0.0);
-        campaignCreated.setUsedAmount(0.0);
-        campaignCreated.setUser_update(user);
+        campaignCreated.setUserUpdate(user);
         iCampaignRepository.save(campaignCreated);
-
         Creatives creatives = mapper.map(creativeDTO, Creatives.class);
         creatives.setCampaignId(campaignCreated);
         creatives.setDeleteFlag(false);
@@ -99,8 +118,10 @@ public class CampaignServiceImpl implements ICampaignService {
         CreativeDTO creativeDTO = campaignAndCreativesDTO.getCreativesDTO();
         try {
             Optional<Campaign> oldCampaign = iCampaignRepository.findByIdAndDeleteFlagIsFalse(campaignId);
-            Optional<Creatives> oldCreate = iCreativeRepository.findByCampaignIdAndDeleteFlagIsFalse(oldCampaign);
-            if (oldCampaign.isPresent() && oldCreate.isPresent()) {
+            Optional<Creatives> oldCreatives = iCreativeRepository.findByCampaignIdAndDeleteFlagIsFalse(oldCampaign);
+            if (oldCampaign.isPresent() && oldCreatives.isPresent()) {
+                campaignValidator.validatorCreate(campaignAndCreativesDTO);
+                campaignValidator.validatorImage(file);
                 //update campaign
                 oldCampaign.get().setName(campaignDTO.getName());
                 oldCampaign.get().setStatus(campaignDTO.getStatus());
@@ -109,19 +130,19 @@ public class CampaignServiceImpl implements ICampaignService {
                 oldCampaign.get().setStartDate(campaignDTO.getStartDate());
                 oldCampaign.get().setEndDate(campaignDTO.getEndDate());
                 //update creative
-                oldCreate.get().setTitle(creativeDTO.getTitle());
-                oldCreate.get().setDescription(creativeDTO.getDescription());
+                oldCreatives.get().setTitle(creativeDTO.getTitle());
+                oldCreatives.get().setDescription(creativeDTO.getDescription());
                 //check if img is change
                 if (!file.isEmpty()) {
                     String imgurl = iFirebaseService.uploadFile(file);
-                    oldCreate.get().setImageUrl(imgurl);
+                    oldCreatives.get().setImageUrl(imgurl);
                     campaignAndCreativesDTO.getCreativesDTO().setImageUrl(imgurl);
                 } else {
-                    campaignAndCreativesDTO.getCreativesDTO().setImageUrl(oldCreate.get().getImageUrl());
+                    campaignAndCreativesDTO.getCreativesDTO().setImageUrl(oldCreatives.get().getImageUrl());
                 }
-                oldCreate.get().setFinalUrl(creativeDTO.getFinalUrl());
+                oldCreatives.get().setFinalUrl(creativeDTO.getFinalUrl());
                 iCampaignRepository.save(oldCampaign.get());
-                iCreativeRepository.save(oldCreate.get());
+                iCreativeRepository.save(oldCreatives.get());
                 return campaignAndCreativesDTO;
             } else
                 throw new ErrorException(messageSource.getMessage(CAMPAIGN_UPDATE_FAILED, null, LocaleContextHolder.getLocale()), HTTP_FORBIDDEN);
@@ -186,11 +207,21 @@ public class CampaignServiceImpl implements ICampaignService {
     @Override
     public void impression(Long id) {
         Optional<Campaign> campaign = iCampaignRepository.findById(id);
+        if (campaign.isEmpty()) {
+            throw new ErrorException(messageSource.getMessage(CAMPAIGN_NOT_FOUND, null, LocaleContextHolder.getLocale()), HTTP_FORBIDDEN);
+        }
+        // Check end conditions
+        if (campaign.get().getEndDate().isBefore(LocalDateTime.now())) {
+            campaign.get().setStatus(false);
+            iCampaignRepository.save(campaign.get());
+            throw new ErrorException(messageSource.getMessage(ERROR_DATE, null, LocaleContextHolder.getLocale()), HTTP_FORBIDDEN);
+        }
         if(campaign.isPresent()){
-            Double usedAmount = campaign.get().getUsedAmount();
-            campaign.get().setUsedAmount((usedAmount + campaign.get().getBidAmount()));
+            campaign.get().setUsedAmount((campaign.get().getUsedAmount() + campaign.get().getBidAmount()));
             campaign.get().setUsageRate(((campaign.get().getUsedAmount() /  campaign.get().getBudget())) * 100);
             iCampaignRepository.save(campaign.get());
         }
     }
+
+
 }

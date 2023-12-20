@@ -10,6 +10,11 @@ public class Constants {
     public static final String ERROR_ADDRESS_REQUIRED = "error.address.required";
     public static final String ERROR_PHONE_REQUIRED = "error.phone.required";
 
+    public static final String ERROR_CAMPAIGN_NAME_REQUIRED = "error.campaign.name.required";
+
+    public static final String ERROR_TITLE_REQUIRED = "error.title.name.required";
+
+    public static final String ERROR_DESCRIPTION_REQUIRED = "error.description.required";
     public static final String ERROR_EMAIL_MAX_LENGTH = "error.email.max.length";
     public static final String ERROR_FIRSTNAME_MAX_LENGTH = "error.firstname.max.length";
     public static final String ERROR_LASTNAME_MAX_LENGTH = "error.lastname.max.length";
@@ -20,6 +25,7 @@ public class Constants {
     public static final String ERROR_LASTNAME_INVALID = "error.lastname.invalid";
     public static final String ERROR_PHONE_INVALID = "error.phone.invalid";
     public static final String ERROR_ADDRESS_INVALID = "error.address.invalid";
+
 
     // User Errors
     public static final String ERROR_EMAIL_ALREADY_EXISTS = "error.email.already.exists";
@@ -74,5 +80,9 @@ public class Constants {
     public static final String IMPRESSION_FAIL = "impression.fail";
 
     public static final String IMPRESSION_SUCCESS = "impression.success";
+
+    public static final String INVALID_DATE_FORMAT = "invalid.date.format";
+
+    public static final String ERROR_DATE = "error.date";
 
 }

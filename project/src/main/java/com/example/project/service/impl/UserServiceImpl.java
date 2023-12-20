@@ -10,9 +10,12 @@ import com.example.project.repository.IRoleRepository;
 import com.example.project.repository.IUserRepository;
 import com.example.project.model.UserPrinciple;
 import com.example.project.service.IUserService;
+import com.example.project.service.JwtService;
 import com.example.project.utlis.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
@@ -41,7 +44,7 @@ public class UserServiceImpl implements IUserService {
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper mapper = new ModelMapper();
     private final MessageSource messageSource;
-    private final UserValidator accountValidator;
+    private final UserValidator userValidator;
     @Override
     public Iterable<User> findAll() {
         return userRepository.findAll();
@@ -51,6 +54,7 @@ public class UserServiceImpl implements IUserService {
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
     }
+    private static final Logger logger = LoggerFactory.getLogger(JwtService.class.getName());
 
 
     @Override
@@ -81,7 +85,7 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public UserDTO createUser(UserCreateRequestDTO userCreateDTO) {
-        accountValidator.validateCreateRequest(userCreateDTO);
+        userValidator.validateCreateRequest(userCreateDTO);
         Role role = roleRepository.findById(userCreateDTO.getRoleId())
                 .orElseThrow(() -> new ErrorException(messageSource.getMessage(ERROR_ROLE_NOT_FOUND, null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
         var newUser = User.builder()
@@ -135,18 +139,18 @@ public class UserServiceImpl implements IUserService {
         Optional<User> optionalOldUser = userRepository.findById(userID);
         if(optionalOldUser.isPresent()){
             User oldUser  =  optionalOldUser.get();
-                oldUser.setFirstName(userDTO.getFirstName());
-                oldUser.setLastName(userDTO.getLastName());
-                oldUser.setAddress(userDTO.getAddress());
-                oldUser.setPhone(userDTO.getPhone());
-                oldUser.setUpdatedAt(LocalDateTime.now());
-                Optional<Role> roleUpdate = roleRepository.findById(userDTO.getRoleId());
-                if(roleUpdate.isPresent()){
-                    oldUser.setRole(roleUpdate.get());
-                }else{
-                    new ResponseMessage<>(messageSource.getMessage(USER_UPDATE_SUCCESS,null, LocaleContextHolder.getLocale()),HTTP_OK);
-                }
-                return mapper.map(userRepository.save(oldUser),UserDTO.class);
+            oldUser.setFirstName(userDTO.getFirstName());
+            oldUser.setLastName(userDTO.getLastName());
+            oldUser.setAddress(userDTO.getAddress());
+            oldUser.setPhone(userDTO.getPhone());
+            oldUser.setUpdatedAt(LocalDateTime.now());
+            Optional<Role> roleUpdate = roleRepository.findById(userDTO.getRoleId());
+            if(roleUpdate.isPresent()){
+                oldUser.setRole(roleUpdate.get());
+            }else{
+                new ResponseMessage(messageSource.getMessage(USER_UPDATE_SUCCESS,null, LocaleContextHolder.getLocale()),HTTP_OK);
+            }
+            return mapper.map(userRepository.save(oldUser),UserDTO.class);
 
         }else {
             throw new ErrorException(messageSource.getMessage(USER_NOT_FOUND, null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND);
@@ -162,5 +166,20 @@ public class UserServiceImpl implements IUserService {
                         () -> new ErrorException(messageSource.getMessage(USER_NOT_FOUND, null, LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
         existingUser.setDeleteFlag(true);
         userRepository.save(existingUser);
+    }
+
+    @Override
+    public Page<User> findNameOrEmail(String lastName, Pageable pageable) {
+        return userRepository.findNameOrEmail(lastName, pageable);
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    public Page<User> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 }

@@ -9,5 +9,6 @@ public class RegularConstants {
     public static final String NAME_REGEX = "^(?!\\s)(?!.*\\s$)[\\p{L}]+(?:\\s[\\p{L}]+)*$";
     public static final String ADDRESS_REGEX = "^[\\p{L}0-9\\s,'-.]+";
     public static final String PASSWORD_REGEX = "/^.{9,}$/";
+    public static final String DATE_REGEX = "\\d{4}-\\d{2}-\\d{2}";
 }
 

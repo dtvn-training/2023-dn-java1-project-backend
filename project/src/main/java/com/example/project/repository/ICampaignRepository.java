@@ -21,11 +21,7 @@ public interface ICampaignRepository extends JpaRepository<Campaign, Long>  {
                 "(:startDate IS NULL AND :endDate IS NOT NULL AND c.startDate <= :endDate) OR " +
                 "(c.startDate BETWEEN :startDate AND :endDate)) " +
                 "ORDER BY c.status DESC")
-        Page<Campaign> getCampaign(
-            @Param("name") String name,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate,
-            Pageable pageable);
+        Page<Campaign> getCampaigns(String name,LocalDateTime startDate,LocalDateTime endDate,Pageable pageable);
 
         @Query("SELECT c FROM Campaign c WHERE c.deleteFlag = false AND c.id = :id")
         Optional<Campaign> findByIdAndDeleteFlagIsFalse(Long id);

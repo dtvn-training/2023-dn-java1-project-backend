@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.project.constants.FieldValueLengthConstants.MAX_PASSWORD_LENGTH;
 import static com.example.project.constants.FieldValueLengthConstants.MIN_PASSWORD_LENGTH;
 
 @RequiredArgsConstructor
@@ -20,10 +19,6 @@ public class PasswordValidator {
 
         if (password.length() < MIN_PASSWORD_LENGTH) {
             result.addError("Password should be at least 8 characters long");
-        }
-
-        if (password.length() >= MAX_PASSWORD_LENGTH) {
-            result.addError("Password must only be a maximum of 60 characters long");
         }
         return result;
     }

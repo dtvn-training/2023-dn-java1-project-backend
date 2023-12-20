@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -38,12 +39,18 @@ public class Creatives {
 
     @CreationTimestamp
     @Column(name = "create_at")
-    private Timestamp createAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "update_at")
-    private Timestamp updateAt;
+    private LocalDateTime updatedAt;
 
     @Column(name = "delete_flag")
     private Boolean deleteFlag;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
 }

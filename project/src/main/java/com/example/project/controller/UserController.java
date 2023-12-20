@@ -8,6 +8,7 @@ import com.example.project.model.User;
 import com.example.project.dto.response.UserResponse;
 import com.example.project.repository.IRoleRepository;
 import com.example.project.repository.IUserRepository;
+import com.example.project.service.IRoleService;
 import com.example.project.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -32,8 +33,7 @@ import static java.net.HttpURLConnection.*;
 @RequestMapping("api/users")
 public class UserController {
     private final IUserService userService;
-    private final IRoleRepository iRoleRepository;
-    private final IUserRepository iUserRepository;
+    private final IRoleService roleService;
     private final MessageSource messageSource;
 
     // Get list user
@@ -43,7 +43,7 @@ public class UserController {
             @RequestParam("limit") int limit) {
         Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").ascending());
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ResponseMessage<Page<UserDTO>>(
+                .body(new ResponseMessage<>(
                         messageSource.getMessage(USER_GET_ALL_SUCCESS, null, LocaleContextHolder.getLocale()), HTTP_OK,
                         userService.getAllUsers(keySearch, pageable)));
     }
@@ -52,14 +52,14 @@ public class UserController {
     @PostMapping("")
     public ResponseEntity<ResponseMessage<UserDTO>> createUser(@RequestBody UserCreateRequestDTO request)
             throws Exception {
-        if (iUserRepository.existsByEmail(request.getEmail())) {
+        if (userService.existsByEmail(request.getEmail())) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage<>(
                             messageSource.getMessage(ERROR_EMAIL_ALREADY_EXISTS, null, LocaleContextHolder.getLocale()),
                             HTTP_NOT_FOUND));
         }
         UserDTO addedUser = userService.createUser(request);
-        if (addedUser != null) {
+        if(addedUser != null) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage<>(
                             messageSource.getMessage(USER_REGISTER_SUCCESS, null, LocaleContextHolder.getLocale()),
@@ -76,7 +76,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getUser(@PathVariable Long id) {
         try {
-            Optional<User> getUser = iUserRepository.findById(id);
+            Optional<User> getUser = userService.findById(id);
             //Check if account has been deleted
             if(getUser.isPresent() && getUser.get().isDeleteFlag())
                 return ResponseEntity.status(HttpStatus.OK)
@@ -92,7 +92,7 @@ public class UserController {
     // Update user
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@Valid @PathVariable Long id, @Valid @RequestBody UserDTO request) {
-        Optional<User> optionalOldUser = iUserRepository.findById(id);
+        Optional<User> optionalOldUser = userService.findById(id);
         if (optionalOldUser.isPresent() &&request.getUpdatedAt().equals(optionalOldUser.get().getUpdatedAt())) {
             UserDTO userUpdated = userService.updateUser(id, request);
             if (userUpdated != null) {
@@ -118,7 +118,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseMessage<UserDTO>> deleteUser(@PathVariable Long id) {
         try {
-            Optional<User> userDelete = iUserRepository.findById(id);
+            Optional<User> userDelete = userService.findById(id);
             // Check if account has been deleted
             if (userDelete.isPresent() && userDelete.get().isDeleteFlag())
                 return ResponseEntity.status(HttpStatus.OK)
@@ -148,7 +148,7 @@ public class UserController {
     public ResponseEntity<ResponseMessage<List<Role>>> getAllRole() {
         List<Role> listRole;
         try {
-            listRole = iRoleRepository.findAll();
+            listRole = (List<Role>) roleService.findAll();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage<>(
