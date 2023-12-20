@@ -3,19 +3,22 @@ package com.example.project.service.impl;
 import com.example.project.model.Role;
 import com.example.project.repository.IRoleRepository;
 import com.example.project.service.IRoleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+
 public class RoleServiceImpl implements IRoleService {
 
-    @Autowired
-    private IRoleRepository roleRepository;
+    
+    private final IRoleRepository roleRepository;
 
     @Override
-    public Iterable<Role> findAll() {
+    public List<Role> findAll() {
         return roleRepository.findAll();
     }
 

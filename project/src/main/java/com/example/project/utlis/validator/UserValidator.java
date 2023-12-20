@@ -1,13 +1,10 @@
 package com.example.project.utlis.validator;
-;
-import com.example.project.constants.Constants;
 import com.example.project.dto.request.UserCreateRequestDTO;
 import com.example.project.exception.ErrorException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import java.util.List;
 
 import static com.example.project.constants.Constants.*;

@@ -14,7 +14,7 @@ public interface IUserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
 
-    @Query("SELECT a FROM User a WHERE a.deleteFlag = 0")
+    @Query("SELECT a FROM User a WHERE a.deleteFlag = false ")
     Page<User> findAll(Pageable pageable);
 
     @Query("SELECT a FROM User a WHERE LOWER(a.lastName) " +

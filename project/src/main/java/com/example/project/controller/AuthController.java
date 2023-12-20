@@ -92,7 +92,7 @@ public class AuthController {
                                 LocaleContextHolder.getLocale())));
     }
 
-    @PostMapping("/signout")
+    @PostMapping("/signOut")
     public ResponseEntity<?> logoutUser(HttpServletRequest request, Principal principal) {
         String token = JwtAuthenticationFilter.getJwtFromRequest(request);
         if (!jwtService.validateJwtToken(token)) {
@@ -108,22 +108,6 @@ public class AuthController {
                 "message.logout.success",
                 null,
                 LocaleContextHolder.getLocale())));
-    }
-
-
-    @GetMapping("/admin/infor")
-    public String admin() {
-        return "admin page";
-    }
-
-    @GetMapping("/dac/infor")
-    public String dac() {
-        return "dac page";
-    }
-
-    @GetMapping("/advertiser/infor")
-    public String advertiser() {
-        return "advertiser page";
     }
 
 }
