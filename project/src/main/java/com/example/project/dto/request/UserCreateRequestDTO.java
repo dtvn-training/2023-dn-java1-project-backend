@@ -1,11 +1,6 @@
 package com.example.project.dto.request;
 
 import lombok.*;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 
 @Data
 @Getter

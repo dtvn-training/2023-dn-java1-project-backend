@@ -1,8 +1,8 @@
 package com.example.project.service.impl;
 
-import static com.example.project.constants.Constants.CAMPAIGN_UPDATE_FAILED;
-import static com.example.project.constants.Constants.CREATIVES_NOT_FOUND;
+import static com.example.project.constants.Constants.*;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.example.project.dto.response.*;
-import com.example.project.exception.CampaignNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -48,8 +47,6 @@ public class CampaignServiceImpl implements ICampaignService {
         listCampaign.forEach(campaign -> {
             CampaignAndImgDTO campaginAndImgDTO = new CampaignAndImgDTO();
                     Optional<Creatives>  creatives =  iCreativeRepository.findByCampaignIdAndDeleteFlagIsFalse(Optional.ofNullable(campaign));
-//                    CampaignAndImgDTO campaginAndImgDTO = new CampaignAndImgDTO();
-//                    Optional<Creatives> creatives = iCreativeRepository.findByCampaignIdAndDeleteFlagIsFalse(Optional.ofNullable(campaign));
                     campaginAndImgDTO = mapper.map(campaign, CampaignAndImgDTO.class);
                     campaginAndImgDTO.setImgUrl(creatives.get().getImageUrl());
                     campaginAndImgDTO.setTitle(creatives.get().getTitle());
@@ -85,13 +82,15 @@ public class CampaignServiceImpl implements ICampaignService {
     public void deleteCampaign(Long campaignId) {
         Optional<Campaign> campaign = iCampaignRepository.findByIdAndDeleteFlagIsFalse(campaignId);
         Optional<Creatives> creatives = iCreativeRepository.findByCampaignIdAndDeleteFlagIsFalse(campaign);
-        if (creatives.isPresent())
-            creatives.get().setDeleteFlag(true);
-        else {
-            throw new RuntimeException(CREATIVES_NOT_FOUND);
+        if (campaign.isPresent()) {
+            if (creatives.isPresent())
+                creatives.get().setDeleteFlag(true);
+            else {
+                throw new ErrorException(messageSource.getMessage(CREATIVES_NOT_FOUND, null, LocaleContextHolder.getLocale()), HTTP_FORBIDDEN);
+            }
+            campaign.get().setDeleteFlag(true);
+            iCampaignRepository.save(campaign.get());
         }
-        campaign.get().setDeleteFlag(true);
-        iCampaignRepository.save(campaign.get());
     }
 
     @Override
@@ -101,7 +100,7 @@ public class CampaignServiceImpl implements ICampaignService {
         try {
             Optional<Campaign> oldCampaign = iCampaignRepository.findByIdAndDeleteFlagIsFalse(campaignId);
             Optional<Creatives> oldCreate = iCreativeRepository.findByCampaignIdAndDeleteFlagIsFalse(oldCampaign);
-            if (oldCampaign.isPresent()) {
+            if (oldCampaign.isPresent() && oldCreate.isPresent()) {
                 //update campaign
                 oldCampaign.get().setName(campaignDTO.getName());
                 oldCampaign.get().setStatus(campaignDTO.getStatus());
@@ -135,7 +134,7 @@ public class CampaignServiceImpl implements ICampaignService {
     @Override
     public CampaignAndCreativesDTO getCampaignAndCreativesDTOById(Long campaignId) {
         Campaign campaign = iCampaignRepository.findById(campaignId)
-                .orElseThrow(() -> new CampaignNotFoundException("Campaign not found with ID: " + campaignId));
+                .orElseThrow(() -> new ErrorException(messageSource.getMessage(CAMPAIGN_NOT_FOUND, null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
 
         Creatives creatives = iCreativeRepository.findByCampaignId(campaign);
         CampaignDTO campaignDTO = mapToCampaignDTO(campaign);
@@ -170,7 +169,7 @@ public class CampaignServiceImpl implements ICampaignService {
         try {
             campaigns = iCampaignRepository.findTopCampaigns(PageRequest.of(0, 5));
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new ErrorException(messageSource.getMessage(e.getMessage(), null, LocaleContextHolder.getLocale()), HTTP_FORBIDDEN);
         }
         List<BannerDTO> imgUrl = new ArrayList<>();
         for(int i = 0; i < campaigns.size(); i++){

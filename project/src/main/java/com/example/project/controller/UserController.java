@@ -1,6 +1,5 @@
 package com.example.project.controller;
 
-import com.example.project.constants.Constants;
 import com.example.project.dto.request.UserCreateRequestDTO;
 import com.example.project.dto.response.UserDTO;
 import com.example.project.exception.ResponseMessage;
@@ -33,41 +32,53 @@ import static java.net.HttpURLConnection.*;
 @RequestMapping("api/users")
 public class UserController {
     private final IUserService userService;
-    private  final IRoleRepository iRoleRepository;
+    private final IRoleRepository iRoleRepository;
     private final IUserRepository iUserRepository;
     private final MessageSource messageSource;
+
     // Get list user
     @GetMapping("") // http://localhost:3000/api/users?page=0&limit=5
-    public ResponseEntity<ResponseMessage<Page<UserDTO>>> getUsers(@RequestParam(value = "keySearch", required = false) String keySearch, @RequestParam("page") int page, @RequestParam("limit") int limit) {
-        Pageable pageable = PageRequest.of(page, limit,Sort.by("createdAt").ascending());
+    public ResponseEntity<ResponseMessage<Page<UserDTO>>> getUsers(
+            @RequestParam(value = "keySearch", required = false) String keySearch, @RequestParam("page") int page,
+            @RequestParam("limit") int limit) {
+        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").ascending());
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ResponseMessage<Page<UserDTO>>( messageSource.getMessage(USER_GET_ALL_SUCCESS, null, LocaleContextHolder.getLocale()),HTTP_OK,
+                .body(new ResponseMessage<Page<UserDTO>>(
+                        messageSource.getMessage(USER_GET_ALL_SUCCESS, null, LocaleContextHolder.getLocale()), HTTP_OK,
                         userService.getAllUsers(keySearch, pageable)));
     }
 
     // create user
     @PostMapping("")
-    public ResponseEntity<ResponseMessage<UserDTO>>  createUser(@RequestBody UserCreateRequestDTO request) throws Exception {
-        if(iUserRepository.existsByEmail(request.getEmail())){
+    public ResponseEntity<ResponseMessage<UserDTO>> createUser(@RequestBody UserCreateRequestDTO request)
+            throws Exception {
+        if (iUserRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage(ERROR_EMAIL_ALREADY_EXISTS,null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
+                    .body(new ResponseMessage<>(
+                            messageSource.getMessage(ERROR_EMAIL_ALREADY_EXISTS, null, LocaleContextHolder.getLocale()),
+                            HTTP_NOT_FOUND));
         }
         UserDTO addedUser = userService.createUser(request);
         if (addedUser != null) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage(USER_REGISTER_SUCCESS,null, LocaleContextHolder.getLocale()),HTTP_OK, addedUser));
+                    .body(new ResponseMessage<>(
+                            messageSource.getMessage(USER_REGISTER_SUCCESS, null, LocaleContextHolder.getLocale()),
+                            HTTP_OK, addedUser));
         } else {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage(USER_REGISTER_FAILED,null, LocaleContextHolder.getLocale()), HTTP_SERVER_ERROR));
+                    .body(new ResponseMessage<>(
+                            messageSource.getMessage(USER_REGISTER_FAILED, null, LocaleContextHolder.getLocale()),
+                            HTTP_NOT_FOUND));
         }
     }
+
     // Get single user
     @GetMapping("/{id}")
     public ResponseEntity<?> getUser(@PathVariable Long id) {
         try {
             Optional<User> getUser = iUserRepository.findById(id);
             //Check if account has been deleted
-            if(getUser.get().isDeleteFlag())
+            if(getUser.isPresent() && getUser.get().isDeleteFlag())
                 return ResponseEntity.status(HttpStatus.OK)
                         .body(new ResponseMessage<>(messageSource.getMessage(USER_IS_DELETED,null, LocaleContextHolder.getLocale()), HTTP_OK));
             User user = userService.getUserByID(id);
@@ -77,44 +88,59 @@ public class UserController {
         }
 
     }
-    //Update user
+
+    // Update user
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@Valid @PathVariable Long id, @Valid @RequestBody UserDTO request){
+    public ResponseEntity<?> updateUser(@Valid @PathVariable Long id, @Valid @RequestBody UserDTO request) {
         Optional<User> optionalOldUser = iUserRepository.findById(id);
-        if (request.getUpdatedAt().equals(optionalOldUser.get().getUpdatedAt()) ){
+        if (optionalOldUser.isPresent() &&request.getUpdatedAt().equals(optionalOldUser.get().getUpdatedAt())) {
             UserDTO userUpdated = userService.updateUser(id, request);
             if (userUpdated != null) {
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage(messageSource.getMessage(USER_UPDATE_SUCCESS,null, LocaleContextHolder.getLocale()),HTTP_OK,userUpdated));
+                        .body(new ResponseMessage<>(
+                                messageSource.getMessage(USER_UPDATE_SUCCESS, null, LocaleContextHolder.getLocale()),
+                                HTTP_OK, userUpdated));
             } else {
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage(messageSource.getMessage(USER_NOT_FOUND,null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
+                        .body(new ResponseMessage<>(
+                                messageSource.getMessage(USER_NOT_FOUND, null, LocaleContextHolder.getLocale()),
+                                HTTP_NOT_FOUND));
             }
         } else {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage(USER_UPDATE_FAIL,null, LocaleContextHolder.getLocale()), HTTP_NOT_FOUND));
+                    .body(new ResponseMessage<>(
+                            messageSource.getMessage(USER_UPDATE_FAIL, null, LocaleContextHolder.getLocale()),
+                            HTTP_NOT_FOUND));
         }
     }
+
     // Delete User
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseMessage<UserDTO>> deleteUser(@PathVariable Long id) {
         try {
-            Optional<User> accountDelete = iUserRepository.findById(id);
-            //Check if account has been deleted
-            if(accountDelete.get().isDeleteFlag())
+            Optional<User> userDelete = iUserRepository.findById(id);
+            // Check if account has been deleted
+            if (userDelete.isPresent() && userDelete.get().isDeleteFlag())
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage<>(messageSource.getMessage(USER_IS_DELETED,null, LocaleContextHolder.getLocale()), HTTP_OK));
-            //delete account
+                        .body(new ResponseMessage<>(
+                                messageSource.getMessage(USER_IS_DELETED, null, LocaleContextHolder.getLocale()),
+                                HTTP_OK));
+            // delete account
             userService.deleteUser(id);
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage(USER_DELETE_SUCCESS,null, LocaleContextHolder.getLocale()),HTTP_OK));
-        }  catch (NumberFormatException e){
+                    .body(new ResponseMessage<>(
+                            messageSource.getMessage(USER_DELETE_SUCCESS, null, LocaleContextHolder.getLocale()),
+                            HTTP_OK));
+        } catch (NumberFormatException e) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage(USER_ID_INVALID,null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
-        }
-        catch (Exception e) {
+                    .body(new ResponseMessage<>(
+                            messageSource.getMessage(USER_ID_INVALID, null, LocaleContextHolder.getLocale()),
+                            HTTP_BAD_REQUEST));
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage(USER_DELETE_FAIL,null, LocaleContextHolder.getLocale()), HTTP_BAD_REQUEST));
+                    .body(new ResponseMessage<>(
+                            messageSource.getMessage(USER_DELETE_FAIL, null, LocaleContextHolder.getLocale()),
+                            HTTP_BAD_REQUEST));
         }
     }
 
@@ -125,10 +151,14 @@ public class UserController {
             listRole = iRoleRepository.findAll();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(messageSource.getMessage(ROLES_GET_ALL_FAILED,null, LocaleContextHolder.getLocale()),HTTP_NOT_FOUND));
+                    .body(new ResponseMessage<>(
+                            messageSource.getMessage(ROLES_GET_ALL_FAILED, null, LocaleContextHolder.getLocale()),
+                            HTTP_NOT_FOUND));
         }
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ResponseMessage(messageSource.getMessage(ROLES_GET_ALL_SUCCESS,null, LocaleContextHolder.getLocale()),HTTP_OK ,listRole ));
+                .body(new ResponseMessage<>(
+                        messageSource.getMessage(ROLES_GET_ALL_SUCCESS, null, LocaleContextHolder.getLocale()), HTTP_OK,
+                        listRole));
     }
 
 }

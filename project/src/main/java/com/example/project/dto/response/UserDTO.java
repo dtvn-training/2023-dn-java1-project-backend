@@ -1,12 +1,6 @@
 package com.example.project.dto.response;
 
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Data

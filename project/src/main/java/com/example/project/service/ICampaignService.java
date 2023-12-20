@@ -3,7 +3,6 @@ package com.example.project.service;
 import com.example.project.dto.response.BannerDTO;
 import com.example.project.dto.response.CampaignAndImgDTO;
 import com.example.project.dto.response.CampaignAndCreativesDTO;
-import com.example.project.model.Campaign;
 import com.example.project.model.User;
 
 import java.time.LocalDateTime;

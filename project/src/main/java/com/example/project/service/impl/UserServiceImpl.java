@@ -10,12 +10,9 @@ import com.example.project.repository.IRoleRepository;
 import com.example.project.repository.IUserRepository;
 import com.example.project.model.UserPrinciple;
 import com.example.project.service.IUserService;
-import com.example.project.service.JwtService;
 import com.example.project.utlis.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
@@ -54,7 +51,6 @@ public class UserServiceImpl implements IUserService {
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
     }
-    private static final Logger logger = LoggerFactory.getLogger(JwtService.class.getName());
 
 
     @Override
@@ -148,7 +144,7 @@ public class UserServiceImpl implements IUserService {
                 if(roleUpdate.isPresent()){
                     oldUser.setRole(roleUpdate.get());
                 }else{
-                    new ResponseMessage(messageSource.getMessage(USER_UPDATE_SUCCESS,null, LocaleContextHolder.getLocale()),HTTP_OK);
+                    new ResponseMessage<>(messageSource.getMessage(USER_UPDATE_SUCCESS,null, LocaleContextHolder.getLocale()),HTTP_OK);
                 }
                 return mapper.map(userRepository.save(oldUser),UserDTO.class);
 
